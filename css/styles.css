@@ -391,3 +391,5 @@ body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tou
 .world-guide #beach-start { margin-top:8px; }
 /* Portfolio drawer trigger hidden at the user's request on every viewport. */
 #fleet-toggle { display: none !important; }
+/* Hide the lower-right client inventory card on every screen size. */
+.fleet { display: none !important; }
