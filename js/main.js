@@ -5,11 +5,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
   DOC, PILLARS, DISTRICTS, FLOWS, RESPONSIBILITY, BILLING, CONTRACTS,
-  BUNDLE, CHECKLIST, ROLES, PLATE,
+  BUNDLE, CHECKLIST, ROLES, PLATE, X_ROADS, Z_ROADS,
 } from './data.js';
 import { brackets, disposeGeometryCaches } from './lego.js';
 import { buildCity } from './city.js';
 import { Simulation, STATUS } from './sim.js';
+import { SERVICE_ROLES, CUSTOMER_STATES } from './ecosystem.js';
 import { pointerNDC } from './picking.js';
 import { BrickAudio } from './audio.js';
 import { optimization, bundle, printProposal } from './proposal.js';
@@ -21,13 +22,13 @@ const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;'
 // ---------------------------------------------------------------------------
 const container = document.getElementById('stage');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#EEF2F7');
-scene.fog = new THREE.FogExp2('#EEF2F7', 0.0035);
+scene.background = new THREE.Color('#DCEFFF');
+scene.fog = new THREE.FogExp2('#DCEFFF', 0.0011);
 
 const aspect = container.clientWidth / container.clientHeight;
 const camera = new THREE.PerspectiveCamera(38, aspect, 1, 1000);
-const DEFAULT_CAM_POS = new THREE.Vector3(120, 115, 135);
-const DEFAULT_TARGET = new THREE.Vector3(0, 4, 0);
+const DEFAULT_CAM_POS = new THREE.Vector3(235, 150, 260);
+const DEFAULT_TARGET = new THREE.Vector3(0, -35, 0);
 camera.position.copy(DEFAULT_CAM_POS);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -50,20 +51,20 @@ controls.dampingFactor = 0.06;
 controls.target.copy(DEFAULT_TARGET);
 controls.maxPolarAngle = Math.PI / 2.08;
 controls.minDistance = 25;
-controls.maxDistance = 340;
+controls.maxDistance = 600;
 
 // Iluminación
 const hemiLight = new THREE.HemisphereLight('#ffffff', '#cbd5e1', 0.75);
 scene.add(hemiLight);
 
 const dirLight = new THREE.DirectionalLight('#ffffff', 1.35);
-dirLight.position.set(90, 140, 70);
+dirLight.position.set(120, 190, 90);
 dirLight.castShadow = true;
 const shadowSize = matchMedia('(pointer: coarse)').matches ? 1024 : 2048;
 dirLight.shadow.mapSize.set(shadowSize, shadowSize);
 dirLight.shadow.camera.near = 20;
-dirLight.shadow.camera.far = 400;
-const d = 95;
+dirLight.shadow.camera.far = 550;
+const d = 140;
 dirLight.shadow.camera.left = -d;
 dirLight.shadow.camera.right = d;
 dirLight.shadow.camera.top = d;
@@ -91,7 +92,7 @@ scene.add(selectBox);
 const state = {
   selected: null, // { kind: 'district' | 'truck' | 'patrol' | 'drone', id, data }
   mode: 'live',
-  tab: 'districts',
+  tab: 'customers',
   filter: 'all',
   isNight: false,
   simTime: new Date(2026, 9, 15, 9, 45),
@@ -198,7 +199,7 @@ export function selectEntity(kind, id, focusCamera = true) {
     if (focusCamera) {
       const p = ent.group.position;
       const targetLook = new THREE.Vector3(p.x, 2, p.z);
-      const targetPos = targetLook.clone().add(new THREE.Vector3(22, 22, 26));
+      const targetPos = targetLook.clone().add(ent.kind === 'customer' ? new THREE.Vector3(11, 10, 14) : new THREE.Vector3(22, 22, 26));
       flyCameraTo(targetPos, targetLook, 0.8);
     }
   }
@@ -221,7 +222,7 @@ function updateLabelsVisibility() {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-const pickables = [];
+const pickables = [...sim.customers.meshes];
 world.buildings.forEach(b => pickables.push(...b.meshes));
 sim.all().forEach(v => v.group.traverse(o => {
   if (o.isMesh && o !== v.group.userData.beam) pickables.push(o);
@@ -251,7 +252,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   // One distance-sorted query respects occlusion across vehicles and buildings.
   const hit = raycaster.intersectObjects(pickables, false).find(h =>
     h.object.visible && (h.object.material.opacity === undefined || h.object.material.opacity > 0.05));
-  const id = hit?.object.userData.entityId;
+  const id = hit?.object.userData.customerIds?.[hit.instanceId] || hit?.object.userData.entityId;
   if (id) selectEntity(world.buildings.has(id) ? 'district' : 'vehicle', id);
   else selectEntity(null, null);
 });
@@ -276,6 +277,8 @@ function renderDetail() {
     const pillar = PILLARS[d.pillar];
     const inb = sim.inbound(id);
     const outb = sim.outbound(id);
+    const visitors = sim.customers.visitors(id);
+    const serviceRole = SERVICE_ROLES[id];
     detailEl.innerHTML = `
       <div class="d-head">
         <div class="d-ico" style="background:${pillar.color};color:${pillar.color}">🏛️</div>
@@ -290,11 +293,14 @@ function renderDetail() {
         </div>
       </div>
       <div class="d-status">
-        <span class="pill ${inb > 0 ? 'amber' : 'gray'}">● ${inb} entrantes</span>
-        <span class="pill ${outb > 0 ? 'blue' : 'gray'}">● ${outb} salientes</span>
+        <span class="pill blue">${visitors.length} clientes LEGO</span>
+        <span class="pill green">${sim.customers.totals.get(id)} visitas completadas</span>
         <span class="pill green">Operando</span>
       </div>
       <p class="d-desc">${d.desc}</p>
+      <div class="customer-journey"><small>LA VIDA EN ESTA ISLA</small><b>${serviceRole.host}</b>
+        <p>${serviceRole.need} → ${serviceRole.result}</p>
+        <button class="btn" id="follow-island-client">Seguir a un cliente LEGO</button></div>
       <div class="rows">
         <div class="row"><span>Pilar Estratégico</span><b>${pillar.name}</b></div>
         <div class="row"><span>Taxonomía</span><b>${d.model}</b></div>
@@ -308,6 +314,26 @@ function renderDetail() {
     `;
     document.getElementById('btn-close-d')?.addEventListener('click', () => selectEntity(null, null));
     document.getElementById('btn-focus-d')?.addEventListener('click', () => selectEntity('district', id, true));
+    document.getElementById('follow-island-client').addEventListener('click', () => selectEntity('customer', visitors[0].id));
+  } else if (kind === 'customer') {
+    const person = data;
+    const district = DISTRICTS.find(d => d.id === person.district);
+    detailEl.innerHTML = `
+      <div class="d-head">
+        <div class="customer-avatar" style="--shirt:${person.color}"><i></i><b></b></div>
+        <div><span class="d-kicker" style="color:${person.flow.color}">${person.host ? 'ANFITRIÓN DE LA ISLA' : 'CLIENTE DEL ECOSISTEMA'}</span>
+          <div class="d-title">${person.customer}</div><div class="d-sub">${person.role}</div></div>
+        <div class="d-actions"><button class="icon-btn" id="close-client" title="Cerrar">✕</button></div>
+      </div>
+      <div class="d-status"><span class="pill blue" id="client-status">${CUSTOMER_STATES[person.status]}</span><span class="pill violet">${person.model}</span></div>
+      <div class="customer-journey"><small>1 · LLEGA CON UNA NECESIDAD</small><p>${person.need}</p>
+        <small>2 · ENTRA EN LA ISLA</small><b>${district.name}</b>
+        <small>3 · SALE CON UNA SOLUCIÓN</small><p>${person.result}</p></div>
+      <p class="d-desc">${person.host ? 'Recibe a los clientes y representa al especialista que opera este servicio.' : 'El ladrillo que lleva al salir representa el servicio activado para su empresa. Personaje y actividad ilustrativos.'}</p>
+      <button class="btn" id="client-island">Explorar ${district.short}</button>
+    `;
+    document.getElementById('close-client').onclick = () => selectEntity(null, null);
+    document.getElementById('client-island').onclick = () => selectEntity('district', person.district);
   } else if (kind === 'truck') {
     const v = data;
     const st = STATUS[v.status] || STATUS.transit;
@@ -470,22 +496,31 @@ function renderFleetList() {
   document.getElementById('t-districts').textContent = DISTRICTS.length;
   document.getElementById('t-trucks').textContent = sim.vehicles.length;
   document.getElementById('t-agents').textContent = sim.drones.length;
+  document.getElementById('t-customers').textContent = sim.customers.people.filter(p => !p.host).length;
 
   if (state.tab === 'districts') {
     fleetListEl.innerHTML = DISTRICTS.map(d => {
       const p = PILLARS[d.pillar];
-      const inb = sim.inbound(d.id);
+      const inb = sim.customers.visitors(d.id).length;
       const isSel = state.selected?.kind === 'district' && state.selected.id === d.id;
       return `
         <div class="f-row ${isSel ? 'sel' : ''}" data-kind="district" data-id="${d.id}">
           <div class="id"><b>${d.short}</b><small>${d.model}</small></div>
           <div class="where"><i style="background:${p.color}"></i><span>${p.name}</span></div>
-          <div class="status"><span class="pill ${inb > 0 ? 'amber' : 'gray'}">${inb} camiones</span></div>
+          <div class="status"><span class="pill ${inb > 0 ? 'amber' : 'gray'}">${inb} clientes</span></div>
           <div class="meta">${d.billing.split(' ')[0]}</div>
           <div class="chev">›</div>
         </div>
       `;
     }).join('');
+  } else if (state.tab === 'customers') {
+    fleetListEl.innerHTML = sim.customers.people.filter(p => !p.host && (!layers[state.filter] || layers[state.filter].includes(p.district))).map(p => `
+      <button class="f-row customer-row ${state.selected?.id === p.id ? 'sel' : ''}" data-kind="customer" data-id="${p.id}">
+        <div class="id"><b>${p.customer}</b><small>${p.model}</small></div>
+        <div class="where"><i style="background:${p.flow.color}"></i><span>${world.buildings.get(p.district).def.short}</span></div>
+        <div class="status"><span class="pill ${p.status === 'using' ? 'green' : 'blue'}">${CUSTOMER_STATES[p.status]}</span></div>
+        <div class="chev">›</div>
+      </button>`).join('');
   } else if (state.tab === 'trucks') {
     fleetListEl.innerHTML = sim.vehicles.map(v => {
       const isSel = state.selected?.id === v.id;
@@ -547,10 +582,10 @@ function updateMinimap() {
 
   // Calles
   mmCtx.fillStyle = '#5B6573';
-  [-30, 0, 30].forEach(z => {
+  Z_ROADS.forEach(z => {
     mmCtx.fillRect(6, mapZ(z) - 3, cw - 12, 6);
   });
-  [-48, -16, 16, 48].forEach(x => {
+  X_ROADS.forEach(x => {
     mmCtx.fillRect(mapX(x) - 3, 6, 6, ch - 12);
   });
 
@@ -583,6 +618,13 @@ function updateMinimap() {
       mmCtx.lineWidth = 2;
       mmCtx.stroke();
     }
+  });
+
+  // Customers are the people using each island, not vehicle traffic.
+  sim.customers.people.forEach(p => {
+    if (p.host) return;
+    mmCtx.fillStyle = p.status === 'using' ? '#FFFFFF' : '#FFD22E';
+    mmCtx.fillRect(mapX(p.group.position.x) - 1.2, mapZ(p.group.position.z) - 1.2, 2.4, 2.4);
   });
 
   // Posición y mirada de la cámara
@@ -668,6 +710,8 @@ function tint(material, lit) {
 }
 function applyFilters() {
   const allowed = layers[state.filter];
+  sim.customers.setFilter(person => (!allowed || allowed.includes(person.district)) &&
+    (!highlightedPillars.length || highlightedPillars.includes(world.buildings.get(person.district).def.pillar)));
   world.buildings.forEach((b, id) => {
     const lit = (!allowed || allowed.includes(id)) &&
       (!highlightedPillars.length || highlightedPillars.includes(b.def.pillar));
@@ -1050,7 +1094,7 @@ searchInput.addEventListener('input', () => {
     }
   });
   sim.all().forEach(v => {
-    if (v.id.toLowerCase().includes(q) || v.customer?.toLowerCase().includes(q) || v.driver?.toLowerCase().includes(q)) {
+    if (v.id.toLowerCase().includes(q) || v.customer?.toLowerCase().includes(q) || v.role?.toLowerCase().includes(q) || v.driver?.toLowerCase().includes(q)) {
       results.push({ kind: v.kind, id: v.id, title: `${v.id} (${v.flow.label})`, sub: `${v.driver || ''} · ${v.customer || ''}`, color: v.flow.color });
     }
   });
@@ -1169,8 +1213,8 @@ function toggleDayNight() {
     hemiLight.groundColor.set('#0f172a');
     world.lampMaterial.emissiveIntensity = 2.0;
   } else {
-    scene.background.set('#EEF2F7');
-    scene.fog.color.set('#EEF2F7');
+    scene.background.set('#DCEFFF');
+    scene.fog.color.set('#DCEFFF');
     dirLight.color.set('#ffffff');
     dirLight.intensity = 1.35;
     hemiLight.color.set('#ffffff');
@@ -1208,8 +1252,8 @@ function updateKPIs() {
   DISTRICTS.forEach(d => {
     const badge = document.getElementById(`badge-${d.id}`);
     if (badge) {
-      const inb = sim.inbound(d.id);
-      badge.textContent = inb > 0 ? `${inb} 🚛` : '';
+      const count = sim.customers.visitors(d.id).filter(p => p.status === 'using' || p.status === 'entering').length;
+      badge.textContent = count ? `${count} clientes` : '';
     }
   });
 }
@@ -1238,15 +1282,17 @@ function animate() {
 
   // Simulación logística
   sim.update(dt, t);
+  sim.customers.render(t);
 
   // Posicionar caja de selección si hay vehículo seleccionado
   if (state.selected && state.selected.kind !== 'district') {
     const ent = sim.get(state.selected.id);
     if (ent) {
       selectBox.position.copy(ent.group.position);
-      selectBox.position.y += 1.4;
+      selectBox.position.y += ent.kind === 'customer' ? 2 : 1.4;
       selectBox.rotation.y = ent.group.rotation.y;
-      selectBox.scale.set(7, 3.6, 3.6);
+      if (ent.kind === 'customer') selectBox.scale.set(2.8, 4.2, 2.8);
+      else selectBox.scale.set(7, 3.6, 3.6);
 
       // Posicionar etiqueta flotante del vehículo
       tempV.copy(ent.group.position);
@@ -1258,7 +1304,7 @@ function animate() {
         const y = (-(tempV.y * 0.5) + 0.5) * container.clientHeight;
         vehicleTag.style.transform = `translate(-50%, -100%) translate(${x}px, ${y}px)`;
         const st = STATUS[ent.status] || STATUS.transit;
-        vehicleTag.innerHTML = `<span>${ent.id}</span> · ${st.label}`;
+        vehicleTag.innerHTML = `<span>${ent.kind === 'customer' ? ent.customer : ent.id}</span> · ${CUSTOMER_STATES[ent.status] || st.label}`;
       }
     }
   }
@@ -1282,6 +1328,10 @@ function animate() {
     kpiTimer = 0;
     updateKPIs();
     renderFleetList();
+    if (state.selected?.kind === 'customer') {
+      const status = document.getElementById('client-status');
+      if (status) status.textContent = CUSTOMER_STATES[state.selected.data.status];
+    }
     if (state.selected?.kind === 'truck') {
       renderDetail();
       renderTracker();
@@ -1343,4 +1393,12 @@ fleetToggle.addEventListener('click', () => {
   fleetToggle.setAttribute('aria-expanded', String(open));
   fleetToggle.textContent = open ? 'Cerrar explorador' : 'Explorar portafolio';
   if (open) { setMode('live'); selectEntity(null, null); }
+});
+
+let followedClient = 0;
+document.getElementById('meet-client').addEventListener('click', () => {
+  const services = ['m365', 'compute', 'azuredata', 'fabric', 'dynamics', 'entra'];
+  const district = services[followedClient++ % services.length];
+  const person = sim.customers.visitors(district).find(p => p.status === 'entering') || sim.customers.visitors(district)[0];
+  selectEntity('customer', person.id);
 });

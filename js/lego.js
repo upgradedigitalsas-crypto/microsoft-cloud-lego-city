@@ -18,7 +18,9 @@ export function rbox(w, h, d) {
   const key = `${w.toFixed(2)}|${h.toFixed(2)}|${d.toFixed(2)}`;
   if (!geoCache.has(key)) {
     const r = Math.min(0.08, w / 4, h / 4, d / 4);
-    geoCache.set(key, new RoundedBoxGeometry(w, h, d, 2, r));
+    const geometry = new RoundedBoxGeometry(w, h, d, 2, r);
+    geometry.userData.primitiveKey = `rbox:${key}`;
+    geoCache.set(key, geometry);
   }
   return geoCache.get(key);
 }

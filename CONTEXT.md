@@ -134,3 +134,29 @@ git push origin main
 ```
 *GitHub Pages compilará automáticamente en ~30 segundos en la URL oficial:*  
 `https://upgradedigitalsas-crypto.github.io/microsoft-cloud-lego-city/`
+
+
+## 7. Actualización: mundo LEGO vivo y ampliado
+
+La ciudad conserva Three.js r160 con módulos nativos y CDN. La base mide
+224 × 164 unidades (2,22 veces la superficie original). Las posiciones de las
+20 islas y la red vial se definen en `js/data.js`; cámara, minimapa, patrullas
+y rutas usan esa extensión.
+
+`js/landscape.js` añade costa escalonada, árboles cúbicos, canal y nubes.
+`js/ecosystem.js` asigna a cada isla un cliente, especialista, necesidad,
+resultado y modelo de servicio. `js/customers.js` anima 60 clientes y 20
+especialistas con piezas instanciadas: llegada → entrada → uso → salida con
+una solución → recorrido. La población es fija y el picking usa `instanceId`.
+Los clientes son actores principales; vehículos y drones ilustran flujos del
+portafolio. La pestaña Clientes y su detalle explican la relación con Microsoft.
+
+El audio sintetizado, las capas Seguridad/Datos/Licenciamiento y las tarjetas
+imprimibles de Optimización/E3–E5 ya están implementados. Los valores comerciales
+son escenarios ilustrativos editables; MACC no se trata como descuento automático.
+La suite `tests/regression.html` valida 24.000 pasos, visitas, muelles, drones,
+picking, colores y propuestas sin instalar herramientas adicionales.
+
+La base rectangular fue reemplazada por una isla irregular en `js/terrain.js`,
+con estratos de tierra decrecientes hasta una punta inferior y océano animado
+por shader. El núcleo urbano de 224 × 164 conserva las 20 zonas de servicios.

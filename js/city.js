@@ -2,6 +2,9 @@
 //  Ciudad LEGO: baseplate, calles y distritos del portafolio Microsoft Cloud
 // ============================================================================
 import * as THREE from 'three';
+import { SERVICE_ROLES } from './ecosystem.js';
+import { buildIslandTerrain } from './terrain.js';
+import { buildLandscape } from './landscape.js';
 import { DISTRICTS, PILLARS, X_ROADS, Z_ROADS, PLATE } from './data.js';
 import {
   brick, plate, tile, roundBrick, sign, tree, matCache, StudBatch, minifig, forklift,
@@ -17,7 +20,7 @@ export function buildCity(scene) {
   const studs = new StudBatch();
   const world = { buildings: new Map(), anims: [], studs };
 
-  buildGround(scene, studs);
+  buildIslandTerrain(scene, studs, world);
   buildRoads(scene);
 
   for (const def of DISTRICTS) {
@@ -26,6 +29,7 @@ export function buildCity(scene) {
     world.anims.push(...b.anims);
   }
   decorate(scene, studs, world);
+  buildLandscape(scene, world, studs);
   studs.flush(scene);
   batchStaticBricks(scene);
   // Include batched studs and sign materials in owner picking/filter lists.
@@ -51,27 +55,6 @@ function onRoad(x, z, pad = 0) {
   return X_ROADS.some(r => Math.abs(x - r) < hw) || Z_ROADS.some(r => Math.abs(z - r) < hw);
 }
 
-function buildGround(scene, studs) {
-  const w = PLATE.maxX - PLATE.minX, d = PLATE.maxZ - PLATE.minZ;
-  const cx = (PLATE.maxX + PLATE.minX) / 2, cz = (PLATE.maxZ + PLATE.minZ) / 2;
-  const base = new THREE.Mesh(rbox(w, 1.2, d), new THREE.MeshStandardMaterial({ color: '#E3E8EF', roughness: 0.45 }));
-  base.position.set(cx, -0.6, cz);
-  base.receiveShadow = true;
-  scene.add(base);
-  // Borde (como un baseplate sobre una mesa)
-  const under = new THREE.Mesh(rbox(w + 6, 1, d + 6), new THREE.MeshStandardMaterial({ color: '#CBD3DE', roughness: 0.8 }));
-  under.position.set(cx, -1.7, cz);
-  under.receiveShadow = true;
-  scene.add(under);
-  // Studs del baseplate (cada 2 unidades fuera de las calles)
-  for (let x = PLATE.minX + 1; x < PLATE.maxX; x += 2) {
-    for (let z = PLATE.minZ + 1; z < PLATE.maxZ; z += 2) {
-      if (onRoad(x, z, 0.6)) continue;
-      studs.addWorld(x, 0.09, z, '#E3E8EF');
-    }
-  }
-}
-
 function buildRoads(scene) {
   const roadM = new THREE.MeshStandardMaterial({ color: '#5B6573', roughness: 0.7 });
   const lineM = new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.6 });
@@ -80,7 +63,7 @@ function buildRoads(scene) {
   const cx = (PLATE.maxX + PLATE.minX) / 2, cz = (PLATE.maxZ + PLATE.minZ) / 2;
   const batches = new Map();
   const add = (geo, m, x, y, z) => {
-    const key = m.uuid + JSON.stringify(geo.parameters);
+    const key = m.uuid + (geo.userData.primitiveKey || geo.type + JSON.stringify(geo.parameters));
     if (!batches.has(key)) batches.set(key, { geo, m, positions: [] });
     const batch = batches.get(key);
     if (geo !== batch.geo) geo.dispose();
@@ -127,11 +110,8 @@ function buildRoads(scene) {
 // Distritos
 // ---------------------------------------------------------------------------
 function roadFor(bz) {
-  // Calle de acceso y posición del muelle
-  if (bz < -30) return { rz: -30, dz: -33.8 };
-  if (bz < 0) return { rz: 0, dz: -3.8 };
-  if (bz < 30) return { rz: 30, dz: 26.2 };
-  return { rz: 30, dz: 33.8 };
+  const rz = Z_ROADS.reduce((nearest, z) => Math.abs(z - bz) < Math.abs(nearest - bz) ? z : nearest);
+  return { rz, dz: rz + (bz > rz ? 1 : -1) * 5.2 };
 }
 
 function buildDistrict(scene, def, studs) {
@@ -143,8 +123,8 @@ function buildDistrict(scene, def, studs) {
   const ctx = { m, studs, color: PILLARS[def.pillar].color, def };
 
   // Lote: placa clara con borde de color del pilar
-  const lotW = Math.abs(bx) > 55 ? 22 : 24;
-  const lotD = Math.abs(bz) > 35 ? 14 : 22;
+  const lotW = Math.abs(bx) > 70 ? 28 : 34;
+  const lotD = Math.abs(bz) > 50 ? 26 : 30;
   plate(g, { w: lotW, d: lotD, color: '#F1F4F8', ctx, studs: false });
   tile(g, { w: lotW, d: 0.8, z: lotD / 2 - 0.4, y: 0.01, color: ctx.color, ctx, h: 0.42 });
   tile(g, { w: lotW, d: 0.8, z: -lotD / 2 + 0.4, y: 0.01, color: ctx.color, ctx, h: 0.42 });
@@ -161,12 +141,14 @@ function buildDistrict(scene, def, studs) {
     tile(dock, { w: 3.8, d: 0.25, x: i * 5, z: dockLocalZ + (dz > rz ? 2.2 : -2.2), y: 0.4, color: '#F2C200', ctx, h: 0.06 });
   }
 
+  const entrance = buildServiceEntrance(g, ctx, lotW, lotD);
   // Recolecta meshes para picking y atenuado
   const meshes = [];
   g.traverse(o => { if (o.isMesh) { o.userData.entityId = def.id; meshes.push(o); } });
 
   return {
-    def, group: g, height, anims: res.anims || [], api: res.api || {},
+    def, group: g, height, anims: res.anims || [], api: res.api || {}, entrance,
+    lot: { width: lotW, depth: lotD },
     road: new THREE.Vector3(bx, 0, rz),
     dock: new THREE.Vector3(bx, 0, dz),
     slots: [-5, 0, 5].map(o => new THREE.Vector3(bx + o, 0, dz)),
@@ -628,15 +610,6 @@ const BUILDERS = {
 // ---------------------------------------------------------------------------
 function decorate(scene, studs, world) {
   const ctx = { studs, m: matCache() };
-  // Árboles en los bordes de la placa
-  for (let x = PLATE.minX + 3; x < PLATE.maxX; x += 7) {
-    if (!onRoad(x, PLATE.maxZ - 2.5, 1.5)) tree(scene, x + Math.random(), PLATE.maxZ - 2.2, ctx, 0.8 + Math.random() * 0.3);
-    if (!onRoad(x, PLATE.minZ + 2, 1.5)) tree(scene, x + Math.random(), PLATE.minZ + 1.8, ctx, 0.8 + Math.random() * 0.3);
-  }
-  for (let z = PLATE.minZ + 6; z < PLATE.maxZ - 4; z += 7) {
-    if (!onRoad(PLATE.minX + 2, z, 1.5)) tree(scene, PLATE.minX + 1.8, z, ctx, 0.9);
-    if (!onRoad(PLATE.maxX - 2, z, 1.5)) tree(scene, PLATE.maxX - 1.8, z, ctx, 0.9);
-  }
   // Árboles y farolas junto a las calles
   const lampM = new THREE.MeshStandardMaterial({ color: '#fff7d6', emissive: '#ffe9a0', emissiveIntensity: 0.6 });
   for (const z of Z_ROADS) for (let x = PLATE.minX + 8; x < PLATE.maxX - 4; x += 16) {
@@ -646,4 +619,34 @@ function decorate(scene, studs, world) {
     const lamp = new THREE.Mesh(rbox(0.9, 0.3, 0.5), lampM); lamp.position.set(x, 4, z + ROAD_W / 2 + 0.4); scene.add(lamp);
   }
   world.lampMaterial = lampM;
+}
+
+// Every island has a real front entrance, a reception area and service outputs.
+function buildServiceEntrance(group, ctx, width, depth) {
+  const front = depth / 2, x = 5.5, z = front - 1;
+  const color = ctx.color, role = SERVICE_ROLES[ctx.def.id];
+  // Segmented colorful rims expose the brick seams and top studs.
+  for (let bx = -width / 2 + 1; bx < width / 2; bx += 2) {
+    if (Math.abs(bx - x) > 2.8) brick(group, { x: bx, y: 0.4, z: front - 0.5, w: 1.92, d: 0.9, h: 0.55, color, ctx });
+    brick(group, { x: bx, y: 0.4, z: -front + 0.5, w: 1.92, d: 0.9, h: 0.55, color, ctx });
+  }
+  // A smooth path lets articulated clients walk through without clipping studs.
+  tile(group, { x: 0, y: 0.4, z: front - 4, w: width - 3, d: 3.5, h: 0.12, color: '#F7E8C9', ctx });
+  tile(group, { x, y: 0.4, z: front - 0.8, w: 4.4, d: 5.8, h: 0.12, color: '#F7E8C9', ctx });
+  for (const side of [-1, 1]) {
+    for (let level = 0; level < 4; level++) brick(group, {
+      x: x + side * 2.45, y: 0.4 + level * 1.15, z, w: 1.05, d: 1.6, h: 1.1,
+      color: level === 1 ? '#FFFFFF' : color, ctx,
+    });
+  }
+  brick(group, { x, y: 5.0, z, w: 6.1, d: 1.9, h: 0.9, color, ctx });
+  sign(group, role.model, { x, y: 5.45, z: z + 0.97, w: 4.1, h: 0.72, bg: color, fg: '#FFFFFF' });
+  // Reception console: the host turns a customer need into a service brick.
+  brick(group, { x: -6.5, y: 0.4, z: front - 5.7, w: 3, d: 1.2, h: 1.2, color, ctx });
+  sign(group, 'CLIENTES', { x: -6.5, y: 1.15, z: front - 5.08, w: 2.5, h: 0.5, bg: '#FFFFFF', fg: '#17456B' });
+  // Output shelf links the animation to the as-a-service metaphor.
+  for (let i = 0; i < 3; i++) brick(group, { x: -10.1 + i * 1.1, y: 0.4, z: front - 6.1,
+    w: 0.95, d: 0.95, h: 0.85, color: i === 1 ? '#FFD12B' : color, ctx });
+  return { x, z, front, host: new THREE.Vector3(-6.5, 0.55, front - 4.1),
+    service: new THREE.Vector3(-3.7, 0.55, front - 4.1), model: role.model };
 }

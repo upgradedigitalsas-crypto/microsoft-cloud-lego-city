@@ -324,3 +324,34 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px s
 @media (max-width: 480px) { .brand-brick { display: none; } .brand-name { font-size: 15px; } .layer-control select { max-width: 136px; } }
 
 @media (min-width: 901px) { .detail { max-height: calc(100% - 422px); } .drawer { bottom: 250px; } }
+
+/* A living LEGO ecosystem: people and their service journeys. */
+.customer-row { width: 100%; text-align: left; grid-template-columns: 112px minmax(90px,1fr) 150px 12px; }
+.customer-row .pill { font-size: 10px; white-space: nowrap; }
+.customer-journey { margin: 14px 0; padding: 12px; border: 1px solid #DCE7F1; border-radius: 12px; background: #F3F8FD; }
+.customer-journey small { display: block; margin: 9px 0 5px; color: #4C647A; font-size: 10px; font-weight: 800; letter-spacing: .05em; }
+.customer-journey p { line-height: 1.5; margin: 3px 0 10px; font-size: 12px; }
+.customer-journey b { display: block; }
+.customer-avatar { width: 44px; height: 50px; flex: none; position: relative; }
+.customer-avatar i { position: absolute; width: 26px; height: 23px; background: #FFD22E; border-radius: 6px; left: 9px; top: 4px; box-shadow: inset 0 -3px 0 #E8AD21; }
+.customer-avatar i::before { content: '••'; position: absolute; top: 0; left: 7px; color: #253347; letter-spacing: 3px; }
+.customer-avatar i::after { content: ''; position: absolute; bottom: 5px; left: 10px; width: 7px; height: 3px; border-bottom: 2px solid #253347; border-radius: 50%; }
+.customer-avatar b { position: absolute; bottom: 2px; left: 4px; width: 36px; height: 20px; border-radius: 6px 6px 2px 2px; background: var(--shirt); border: 1px solid #D6DFE7; }
+.world-guide { position: absolute; bottom: 20px; left: 12px; width: 305px; padding: 18px; z-index: 10; }
+.world-kicker { font-size: 9px; font-weight: 800; color: #2169B5; letter-spacing: .08em; }
+.world-guide h2 { font-size: 20px; line-height: 1.2; letter-spacing: -.04em; margin: 8px 0; }
+.world-guide p { font-size: 12px; line-height: 1.5; color: #4B5869; margin: 8px 0 12px; }
+.world-guide small { display: block; font-size: 10px; color: #4C647A; margin-top: 10px; }
+body:not(.no-detail) .world-guide, body.drawer-open .world-guide { display: none; }
+.tabs { overflow-x: auto; }
+@media (max-width: 1100px) { .world-guide { width: 245px; padding: 12px; } .world-guide h2 { font-size: 17px; } }
+@media (max-width: 900px) {
+  .world-guide { left: 8px; bottom: 68px; width: 220px; padding: 12px; }
+  .world-guide h2 { font-size: 16px; } .world-guide p, .world-guide small { display: none; }
+  .world-guide .btn { min-height: 44px; font-size: 12px; padding: 8px; }
+  body.fleet-open .world-guide { display: none; }
+  .customer-row { grid-template-columns: 86px minmax(70px, 1fr) 110px; }
+  .customer-row .pill { white-space: normal; line-height: 1.2; }
+  body.fleet-open:has(.customer-row) #minimap { display: none; }
+}
+@media (max-height: 580px) { .world-guide { display: none; } }

@@ -96,6 +96,28 @@ calls y triángulos en una cámara fija sin sombras. No requiere npm.
 
 La revisión de esta entrega pasó esas pruebas y cambios rápidos entre los nueve
 modos sin mensajes de advertencia/error en la consola del navegador integrado.
-Se revisaron escritorio y un viewport de teléfono de 390 × 844. La última prueba
-registró 1.357 draw calls sin sombras; esa cifra no equivale a una garantía de
+Se revisaron escritorio y un viewport de teléfono de 390 × 844. La prueba del mundo ampliado
+registró 1.332 draw calls sin sombras; esa cifra no equivale a una garantía de
 60 FPS. Sigue pendiente medir FPS y gestos en hardware iPad/Safari y móviles reales.
+
+### Mundo LEGO vivo y ampliado
+
+- Terreno de 224 × 164 unidades: 2,22 veces la superficie anterior, con mayor
+  separación entre islas, costa escalonada, árboles y nubes construidos con bloques.
+- 60 clientes y 20 especialistas LEGO articulados. Cada cliente llega con una
+  necesidad, entra por el acceso de su isla, usa el servicio y sale con un ladrillo
+  que representa la solución. Los recorridos se repiten sin crear nuevos actores.
+- Cada isla tiene un rol explícito: colaboración Microsoft 365, desarrollo Azure,
+  análisis Fabric/OneLake, seguridad, aplicaciones, IA, contratos o partners.
+  La representación es didáctica; personajes, compañías y actividad son ilustrativos.
+- La pestaña Clientes, el botón «Conocer a un cliente» y la selección 3D muestran
+  necesidad, servicio y resultado. Las capas también atenúan personajes ajenos al filtro.
+- `js/ecosystem.js` centraliza roles; `js/customers.js` mantiene recorridos y cuerpos
+  instanciados; `js/landscape.js` construye el paisaje de bloques. Sin nuevas dependencias.
+- Las pruebas incluyen cobertura de las 20 islas, visitas repetidas, posiciones,
+  restauración de colores y selección por `instanceId`. Las 80 minifiguras comparten
+  menos de 40 draw calls, independientemente de su cantidad.
+
+La base exterior es una isla irregular tipo iceberg de tierra, con estratos de
+bloques que convergen en una punta. El océano circundante anima olas y normales
+en el shader, reutilizando una única malla. `js/terrain.js` define esta base.

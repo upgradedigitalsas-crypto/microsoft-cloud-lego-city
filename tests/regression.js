@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { buildCity } from '../js/city.js';
+import { isIslandLand } from '../js/terrain.js';
+import { PLATE, DISTRICTS } from '../js/data.js';
+import { SERVICE_ROLES } from '../js/ecosystem.js';
 import { Simulation } from '../js/sim.js';
 import { pointerNDC } from '../js/picking.js';
 import { optimization, bundle, printProposal } from '../js/proposal.js';
@@ -22,6 +25,10 @@ try {
   const scene = new THREE.Scene();
   const world = buildCity(scene);
   const sim = new Simulation(scene, world);
+  assert((PLATE.maxX - PLATE.minX) * (PLATE.maxZ - PLATE.minZ) > 2 * 156 * 106, 'Mundo ampliado a más del doble de superficie');
+  assert(sim.customers.people.length === 80 && sim.customers.people.filter(p => !p.host).length === 60, '60 clientes y 20 especialistas con población fija');
+  assert(DISTRICTS.every(d => SERVICE_ROLES[d.id] && world.buildings.get(d.id).entrance && sim.customers.visitors(d.id).length === 3), 'Cada isla tiene un papel de Microsoft Cloud, acceso y tres clientes');
+  assert(DISTRICTS.every(d => isIslandLand(d.pos[0], d.pos[1])) && !isIslandLand(185, 145) && isIslandLand(130, 0), 'Costa irregular conserva los servicios y se extiende fuera del antiguo rectángulo');
   let events = 0;
   const deliveries = new Map();
   const unsubscribe = sim.on('event', () => events++);
@@ -54,6 +61,22 @@ try {
   assert(deliveries.size === truckCount && [...deliveries.values()].every(n => n >= 2), 'Todos los camiones completan múltiples entregas en 20 minutos');
   assert(maxReservations <= truckCount, 'Muelles exclusivos y sin reservas huérfanas durante toda la prueba');
   assert(sim.drones.every(d => d.done >= 2 && d.timeline.length <= 5), 'Drones completan múltiples misiones con historial acotado');
+  assert(sim.customers.people.filter(p => !p.host).every(p => p.done >= 2), 'Todos los clientes completan múltiples visitas sin bloquearse');
+  assert(sim.customers.people.every(p => {
+    const b = world.buildings.get(p.district), pos = p.group.position;
+    return Number.isFinite(pos.x) && Number.isFinite(pos.z) && Math.abs(pos.x - b.group.position.x) <= b.lot.width / 2 && Math.abs(pos.z - b.group.position.z) <= b.lot.depth / 2 + 3;
+  }), 'Clientes permanecen en sus accesos y recorridos de servicio');
+  sim.customers.render();
+  const head = sim.customers.parts.find(p => p.name === 'head')?.mesh;
+  assert(!!head && sim.customers.meshes.length < 40, '80 minifiguras articuladas comparten menos de 40 draw calls');
+  const originalColors = head.instanceColor.array.slice();
+  sim.customers.setFilter(p => p.district === 'fabric'); sim.customers.setFilter(() => true);
+  assert(head.instanceColor.array.every((v, i) => v === originalColors[i]), 'Filtros de clientes restauran sus colores sin materiales adicionales');
+  scene.updateMatrixWorld(true);
+  const transform = new THREE.Matrix4(); head.getMatrixAt(0, transform);
+  const center = new THREE.Vector3().setFromMatrixPosition(transform);
+  const ray = new THREE.Raycaster(center.clone().add(new THREE.Vector3(0, 0, 10)), new THREE.Vector3(0, 0, -1));
+  assert(ray.intersectObject(head).some(hit => hit.instanceId === 0 && hit.object.userData.customerIds[hit.instanceId] === sim.customers.people[0].id), 'Picking identifica al cliente correcto dentro de las instancias');
   const drone = sim.drones[0];
   drone.status = 'returning'; drone.from = drone.group.position.clone(); drone.to = drone.pad.clone(); drone.dur = 0.05; drone.t = 0;
   sim.updateDrone(drone, 0.05, 0);
@@ -73,7 +96,7 @@ try {
   const renderer = new THREE.WebGLRenderer({ antialias: false });
   renderer.setSize(640, 480);
   const camera = new THREE.PerspectiveCamera(38, 4 / 3, 1, 1000);
-  camera.position.set(120, 115, 135); camera.lookAt(0, 4, 0);
+  camera.position.set(235, 210, 260); camera.lookAt(0, 4, 0);
   scene.add(new THREE.HemisphereLight());
   renderer.render(scene, camera);
   lines.push(`INFO ${renderer.info.render.calls} draw calls (sin sombras), ${renderer.info.render.triangles} triángulos`);

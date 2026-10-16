@@ -2,8 +2,9 @@
 //  Simulación logística en tiempo real (×60: 1 s real = 1 min simulado)
 // ============================================================================
 import * as THREE from 'three';
+import { CustomerLife } from './customers.js';
 import { FLOWS, DISTRICTS, X_ROADS, Z_ROADS, CUSTOMERS, DRIVERS, COPILOT_TASKS, EVENTS } from './data.js';
-import { truck, patrolCar, drone, minifig } from './lego.js';
+import { truck, patrolCar, drone } from './lego.js';
 
 const LANE = 1.4;
 const BASE_SPEED = 9;
@@ -29,7 +30,6 @@ export class Simulation {
     this.world = world;
     this.vehicles = [];
     this.drones = [];
-    this.walkers = [];
     this.events = [];
     this.listeners = new Set();
     this.kpi = {
@@ -44,6 +44,7 @@ export class Simulation {
     this.busy = new Map(); // ocupación de muelles
     this.spawn();
     this.nextEvent = 3;
+    this.customers = new CustomerLife(scene, world);
   }
 
   on(type, fn) {
@@ -85,8 +86,10 @@ export class Simulation {
       }
     }
     // Patrullas Defender (anillo perimetral)
-    const ringA = [[-48, -30], [48, -30], [48, 30], [-48, 30], [-48, -30]];
-    const ringB = [[-16, 0], [-16, 30], [16, 30], [16, 0], [16, -30], [-16, -30], [-16, 0]];
+    const [west, innerWest, innerEast, east] = X_ROADS;
+    const [north, center, south] = Z_ROADS;
+    const ringA = [[west, north], [east, north], [east, south], [west, south], [west, north]];
+    const ringB = [[innerWest, center], [innerWest, south], [innerEast, south], [innerEast, center], [innerEast, north], [innerWest, north], [innerWest, center]];
     [ringA, ringB].forEach((ring, i) => {
       const g = patrolCar();
       const id = `DEF-${700 + i * 11}`;
@@ -113,16 +116,7 @@ export class Simulation {
       this.scene.add(g);
       this.drones.push({ id, kind: 'drone', group: g, pad, status: 'pad', dwell: 1 + i * 1.6, task: null, target: null, from: null, to: null, t: 0, dur: 1, done: 0, flow: { label: 'Agente Copilot', color: '#9B5CD6', type: 'agent' }, timeline: [] });
     }
-    // Peatones (equipo de cuenta, CSAs, usuarios)
-    const shirts = ['#E0453A', '#1E7BD8', '#2FA05A', '#F28C28', '#9B5CD6', '#2B2F3A'];
-    for (let i = 0; i < 14; i++) {
-      const fig = minifig(rand(shirts), rand(['#2B2F3A', '#1E3A8A', '#6B7280']), Math.random() < 0.3 ? rand(['#2B2F3A', '#E0453A', '#F2C200']) : null);
-      const z = rand(Z_ROADS) + (Math.random() < 0.5 ? -4.3 : 4.3);
-      const x0 = -70 + Math.random() * 140;
-      fig.position.set(x0, 0.4, z);
-      this.scene.add(fig);
-      this.walkers.push({ fig, z, x: x0, dir: Math.random() < 0.5 ? 1 : -1, speed: 1.6 + Math.random(), phase: Math.random() * 6 });
-    }
+
   }
 
   slotFor(bid, v) {
@@ -195,7 +189,7 @@ export class Simulation {
     dt = Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, 0.05) : 0;
     for (const v of this.vehicles) v.kind === 'patrol' ? this.updatePatrol(v, dt, t) : this.updateTruck(v, dt, t);
     for (const d of this.drones) this.updateDrone(d, dt, t);
-    for (const w of this.walkers) this.updateWalker(w, dt, t);
+    this.customers.advance(dt, t);
 
     // ACR continuo
     const tick = dt * 9.5;
@@ -357,19 +351,8 @@ export class Simulation {
     }
   }
 
-  updateWalker(w, dt, t) {
-    w.x += w.dir * w.speed * dt;
-    if (w.x > 74 || w.x < -74 || (Math.random() < 0.002)) w.dir *= -1;
-    // Esquiva cruces de calles verticales cruzando por el paso de cebra (simple)
-    w.fig.position.set(w.x, 0.4, w.z);
-    w.fig.rotation.y = w.dir > 0 ? Math.PI / 2 : -Math.PI / 2;
-    const s = Math.sin(t * 8 + w.phase) * 0.6;
-    const [l, r] = w.fig.userData.legs; l.rotation.x = s; r.rotation.x = -s;
-    const [al, ar] = w.fig.userData.arms; al.rotation.x = -s; ar.rotation.x = s;
-  }
-
   // ------------------------------------------------------------------ queries
-  all() { return [...this.vehicles, ...this.drones]; }
+  all() { return [...this.vehicles, ...this.drones, ...this.customers.people]; }
   get(id) { return this.all().find(v => v.id === id); }
   inbound(bid) { return this.vehicles.filter(v => v.kind === 'truck' && v.job?.to === bid && ['transit', 'docking', 'unloading'].includes(v.status)).length; }
   outbound(bid) { return this.vehicles.filter(v => v.kind === 'truck' && v.job?.from === bid && ['loading', 'transit'].includes(v.status)).length; }
