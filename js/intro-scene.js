@@ -52,7 +52,8 @@ export function createIntroScene(container) {
   function render(t){
     const walk=ease(t/4),arrival=ease((t-3)/2.8),shake=t>=6&&t<8.4;
     visitor.root.position.set(THREE.MathUtils.lerp(-8,-1.13,walk),t<4?Math.abs(Math.sin(t*8))*.065:0,0);
-    host.root.position.set(THREE.MathUtils.lerp(8,1.13,arrival),t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0,0);
+    host.root.visible=t>=3;
+    host.root.position.set(THREE.MathUtils.lerp(8,1.13,arrival),(t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0)-3.2*(1-ease((t-3)/.8)),0);
     visitor.root.rotation.y=t<4?.5:shake?.28:0;host.root.rotation.y=t<5.8?-.5:shake?-.28:0;
     for(const [fig,moving] of [[visitor,t<4],[host,t>3&&t<5.8]]){
       fig.legs.forEach((leg,i)=>leg.rotation.x=moving?Math.sin(t*8+i*Math.PI)*.55:0);
