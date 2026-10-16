@@ -3,6 +3,7 @@
 // ============================================================================
 import * as THREE from 'three';
 import { CustomerLife } from './customers.js';
+import { BOULEVARD, streetRoute } from './urban.js';
 import { FLOWS, DISTRICTS, X_ROADS, Z_ROADS, CUSTOMERS, DRIVERS, COPILOT_TASKS, EVENTS } from './data.js';
 import { truck, patrolCar, drone } from './lego.js';
 
@@ -86,10 +87,9 @@ export class Simulation {
       }
     }
     // Patrullas Defender (anillo perimetral)
-    const [west, innerWest, innerEast, east] = X_ROADS;
-    const [north, center, south] = Z_ROADS;
-    const ringA = [[west, north], [east, north], [east, south], [west, south], [west, north]];
-    const ringB = [[innerWest, center], [innerWest, south], [innerEast, south], [innerEast, center], [innerEast, north], [innerWest, north], [innerWest, center]];
+    const ringA = [...BOULEVARD, BOULEVARD[0]];
+    const reverse = [...BOULEVARD].reverse();
+    const ringB = [...reverse, reverse[0]];
     [ringA, ringB].forEach((ring, i) => {
       const g = patrolCar();
       const id = `DEF-${700 + i * 11}`;
@@ -165,20 +165,14 @@ export class Simulation {
   setPath(v, fromId, toId) {
     this.releaseSlot(v);
     const A = this.B(fromId), Bb = this.B(toId);
-    const road = [A.road.clone()];
-    if (A.road.z !== Bb.road.z) {
-      let best = X_ROADS[0], bd = 1e9;
-      for (const xv of X_ROADS) { const d = Math.abs(A.road.x - xv) + Math.abs(Bb.road.x - xv); if (d < bd) { bd = d; best = xv; } }
-      road.push(new THREE.Vector3(best, 0, A.road.z), new THREE.Vector3(best, 0, Bb.road.z));
-    }
-    road.push(Bb.road.clone());
+    const road = streetRoute(A.roadIndex, Bb.roadIndex).map(([x,z]) => new THREE.Vector3(x,0,z));
     const clean = dedupe(road);
     const lane = clean.length > 1 ? offsetLane(clean, false) : clean;
     const start = v.group.position.clone(); start.y = 0;
     const end = this.slotFor(toId, v);
     v.slot = end;
     // Aproximación al carril
-    const pts = [start, new THREE.Vector3(start.x, 0, lane[0].z), ...lane, new THREE.Vector3(end.x, 0, lane[lane.length - 1].z), end];
+    const pts = [start, ...lane, end];
     v.path = polyline(dedupe(pts));
     v.s = 0;
     v.dest = toId;

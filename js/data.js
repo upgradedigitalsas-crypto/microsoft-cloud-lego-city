@@ -33,19 +33,19 @@ export const DISTRICTS = [
   // ---------------- CAPA IA (fila trasera) ----------------
   {
     id: 'copilotStudio', name: 'Copilot Studio', short: 'Copilot Studio', pillar: 'ai', kind: 'lab',
-    pos: [-45, -61], model: 'SaaS', billing: 'Por mensajes / capacidad',
+    pos: [52, -94], model: 'SaaS', billing: 'Por mensajes / capacidad',
     desc: 'Entorno para orquestar agentes autónomos que se integran a APIs externas, sistemas ERP y flujos lógicos mediante el estándar de conectores de Microsoft.',
     items: ['Agentes autónomos', 'Conectores', 'Integración ERP', 'Flujos lógicos'],
   },
   {
     id: 'copilot', name: 'Microsoft 365 Copilot', short: 'Copilot Tower', pillar: 'ai', kind: 'copilotTower',
-    pos: [0, -61], model: 'SaaS', billing: 'Por puesto (USL)',
+    pos: [16, -49], model: 'SaaS', billing: 'Por puesto (USL)',
     desc: 'Capa transversal de IA: asistentes embebidos especializados por contexto de aplicación (M365, GitHub, Security, Dynamics). Desde aquí despegan los agentes Copilot que asisten a todos los distritos.',
     items: ['M365 Copilot', 'GitHub Copilot', 'Dynamics Copilot', 'Microsoft Graph'],
   },
   {
     id: 'secCopilot', name: 'Security Copilot', short: 'Security Copilot', pillar: 'ai', kind: 'lab2',
-    pos: [45, -61], model: 'SaaS', billing: 'Capacidad (SCUs)',
+    pos: [-112, -46], model: 'SaaS', billing: 'Capacidad (SCUs)',
     desc: 'Asistente de IA para equipos SOC: triage de incidentes, análisis de amenazas y respuesta guiada sobre Defender, Sentinel, Entra y Purview.',
     items: ['Triage de incidentes', 'Threat intel', 'Guías de respuesta', 'KQL asistido'],
   },
@@ -53,19 +53,19 @@ export const DISTRICTS = [
   // ---------------- APLICACIONES ----------------
   {
     id: 'm365', name: 'Microsoft 365', short: 'Microsoft 365', pillar: 'apps', kind: 'officeTower',
-    pos: [-45, -22], model: 'SaaS', billing: 'Por puesto (USL) · E3 / E5',
+    pos: [56, -25], model: 'SaaS', billing: 'Por puesto (USL) · E3 / E5',
     desc: 'Aplicaciones de escritorio y web, mensajería empresarial y gestión de puestos de trabajo. Evoluciona de suite de oficina hacia un centro de operaciones de datos no estructurados y grafos organizacionales (Microsoft Graph).',
     items: ['Teams', 'Office (Word, Excel, PowerPoint)', 'Exchange Online', 'SharePoint', 'OneDrive', 'Windows 11 Enterprise', 'Intune'],
   },
   {
     id: 'dynamics', name: 'Dynamics 365', short: 'Dynamics 365', pillar: 'apps', kind: 'factory',
-    pos: [0, -22], model: 'SaaS', billing: 'Por puesto (USL)',
+    pos: [58, 22], model: 'SaaS', billing: 'Por puesto (USL)',
     desc: 'Cobertura de procesos críticos de misión empresarial modularizados en ERP (Finance, Supply Chain Management) y CRM (Customer Service, Sales, Field Service).',
     items: ['Finance', 'Supply Chain', 'Sales', 'Customer Insights', 'Customer Service', 'Field Service'],
   },
   {
     id: 'power', name: 'Power Platform', short: 'Power Platform', pillar: 'apps', kind: 'powerPlant',
-    pos: [45, -22], model: 'SaaS', billing: 'Por usuario / por app · Dataverse',
+    pos: [-24, 46], model: 'SaaS', billing: 'Por usuario / por app · Dataverse',
     desc: 'Capa Low-Code/No-Code que democratiza la construcción de apps internas (Power Apps), flujos automatizados (Power Automate), agentes conversacionales y visualización de datos (Power BI), todos sobre Microsoft Dataverse.',
     items: ['Power Apps', 'Power Automate', 'Power BI', 'Dataverse', 'Agentes virtuales'],
   },
@@ -73,19 +73,19 @@ export const DISTRICTS = [
   // ---------------- INFRAESTRUCTURA Y DATOS ----------------
   {
     id: 'compute', name: 'Azure Compute (IaaS)', short: 'Azure IaaS', pillar: 'data', kind: 'datacenter',
-    pos: [-45, 22], model: 'IaaS', billing: 'Consumo puro (vCPU·s, GB egress, IOPS)',
+    pos: [-54, -20], model: 'IaaS', billing: 'Consumo puro (vCPU·s, GB egress, IOPS)',
     desc: 'Provisión de recursos fundamentales de red virtualizada, almacenamiento escalable (Azure Blob, NetApp Files) y cómputo (Virtual Machines, Dedicated Hosts).',
     items: ['Virtual Machines', 'Dedicated Hosts', 'Azure Blob', 'NetApp Files', 'Redes virtuales'],
   },
   {
     id: 'azuredata', name: 'Azure PaaS + AI Foundry', short: 'Azure PaaS & AI', pillar: 'data', kind: 'aiCampus',
-    pos: [0, 22], model: 'PaaS', billing: 'Consumo puro (llamadas API, RU/s, vCore)',
+    pos: [-26, -48], model: 'PaaS', billing: 'Consumo puro (llamadas API, RU/s, vCore)',
     desc: 'Entornos de ejecución y bases de datos gestionadas donde el cliente se enfoca en el código o esquema. Azure OpenAI y AI Foundry despliegan modelos fundacionales con privacidad y residencia empresarial.',
     items: ['AKS', 'App Services', 'Azure SQL Database', 'Cosmos DB', 'Azure OpenAI', 'AI Foundry'],
   },
   {
     id: 'fabric', name: 'Microsoft Fabric · OneLake', short: 'Fabric / OneLake', pillar: 'data', kind: 'lakehouse',
-    pos: [45, 22], model: 'SaaS analítico', billing: 'Capacidad (SKUs F · CUs)',
+    pos: [24, 44], model: 'SaaS analítico', billing: 'Capacidad (SKUs F · CUs)',
     desc: 'Unifica Data Warehouses y lagos analíticos bajo una única réplica de datos (OneLake). Lakehouse en Delta Parquet, Synapse Analytics, Data Factory y Data Mesh.',
     items: ['OneLake', 'Lakehouse / Delta Parquet', 'Synapse Analytics', 'Data Factory', 'Power BI Premium'],
   },
@@ -93,25 +93,25 @@ export const DISTRICTS = [
   // ---------------- SEGURIDAD (fila frontal = perímetro) ----------------
   {
     id: 'entra', name: 'Microsoft Entra', short: 'Entra ID', pillar: 'security', kind: 'gate',
-    pos: [-45, 61], model: 'SaaS', billing: 'Por usuario (P1 / P2)',
+    pos: [6, 105], model: 'SaaS', billing: 'Por usuario (P1 / P2)',
     desc: 'Gestión de identidades y accesos (IAM, CIAM, Zero Trust). Controla el ciclo de vida del usuario, MFA condicional y privilegios mínimos. Es la puerta de toda la ciudad.',
     items: ['IAM / CIAM', 'Zero Trust', 'MFA condicional', 'Privilegios mínimos'],
   },
   {
     id: 'defender', name: 'Microsoft Defender', short: 'Defender XDR', pillar: 'security', kind: 'shieldHQ',
-    pos: [0, 61], model: 'SaaS', billing: 'Por usuario / por servidor',
+    pos: [-80, 79], model: 'SaaS', billing: 'Por usuario / por servidor',
     desc: 'Suite XDR para protección de endpoints, identidades locales y cloud, correo electrónico y contenedores. Sus patrullas recorren la ciudad.',
     items: ['Endpoint', 'Identity', 'Office 365', 'Cloud / Containers'],
   },
   {
     id: 'sentinel', name: 'Microsoft Sentinel', short: 'Sentinel SIEM', pillar: 'security', kind: 'radar',
-    pos: [45, 61], model: 'SaaS', billing: 'Consumo (GB ingeridos)',
+    pos: [-129, 12], model: 'SaaS', billing: 'Consumo (GB ingeridos)',
     desc: 'Plataforma cloud-native SIEM con orquestación y respuesta automatizada (SOAR). Recibe telemetría de toda la ciudad.',
     items: ['SIEM', 'SOAR', 'Analítica KQL', 'Playbooks'],
   },
   {
     id: 'purview', name: 'Microsoft Purview', short: 'Purview DLP', pillar: 'security', kind: 'archive',
-    pos: [87, 61], model: 'SaaS', billing: 'Por usuario / consumo',
+    pos: [-57, 24], model: 'SaaS', billing: 'Por usuario / consumo',
     desc: 'Gobierno, protección de información clasificada, cumplimiento normativo y auditoría de prevención de fuga de datos (DLP).',
     items: ['DLP', 'Etiquetas de sensibilidad', 'eDiscovery', 'Auditoría', 'Data Map'],
   },
@@ -119,25 +119,25 @@ export const DISTRICTS = [
   // ---------------- CONTRATOS (columna izquierda) ----------------
   {
     id: 'csp', name: 'CSP · Canal Partners', short: 'CSP / NCE', pillar: 'commercial', kind: 'shop',
-    pos: [-87, -61], model: 'Contrato', billing: 'Mensual (+~20%) o anual NCE',
+    pos: [74, 85], model: 'Contrato', billing: 'Mensual (+~20%) o anual NCE',
     desc: 'Orientado a SMB / mid-market que tercerizan gestión técnica y facturación a un MSP. New Commerce Experience: flexibilidad mensual con recargo ~20% o anual fijo no cancelable.',
     items: ['Mid-market / SMB', 'Facturación mensual', 'Margen del partner', 'NCE'],
   },
   {
     id: 'ea', name: 'Enterprise Agreement', short: 'EA', pillar: 'commercial', kind: 'bank',
-    pos: [-87, -22], model: 'Contrato', billing: 'Compromiso 3 años · True-up anual',
+    pos: [-42, 106], model: 'Contrato', billing: 'Compromiso 3 años · True-up anual',
     desc: 'Canal tradicional para >500 puestos (o 2.400 según región). Precios congelados durante 3 años. True-up: 11 meses de despliegue libre, conciliación en el mes 12 sin penalización retroactiva.',
     items: ['>500 seats', '3 años', 'Precios congelados', 'True-up anual'],
   },
   {
     id: 'mcae', name: 'MCA-E · Canal Moderno', short: 'MCA-E', pillar: 'commercial', kind: 'modernOffice',
-    pos: [-87, 22], model: 'Contrato', billing: 'Digital · consumo unificado',
+    pos: [-117, 57], model: 'Contrato', billing: 'Digital · consumo unificado',
     desc: 'Microsoft Customer Agreement for Enterprise: contratación digital que sustituye gradualmente al EA. Elimina enmiendas en papel y centraliza perfiles de facturación en el portal unificado.',
     items: ['Grandes corporativos', 'Contrato digital', 'Perfiles de facturación', 'Consumo ágil'],
   },
   {
     id: 'macc', name: 'MACC Vault', short: 'MACC', pillar: 'commercial', kind: 'vault',
-    pos: [-87, 61], model: 'Compromiso', billing: 'Gasto mínimo 3–5 años',
+    pos: [-85, -79], model: 'Compromiso', billing: 'Gasto mínimo 3–5 años',
     desc: 'Microsoft Azure Consumption Commitment: compromiso de gasto mínimo (ej. $5M USD) a cambio de descuentos, créditos AMMP e ingeniería. El gasto elegible en Azure Marketplace descuenta 1:1 del saldo.',
     items: ['Compromiso $5M', 'Créditos AMMP', 'Marketplace 1:1', 'Reservas + AHB'],
   },
@@ -145,19 +145,19 @@ export const DISTRICTS = [
   // ---------------- PARTNERS (columna derecha) ----------------
   {
     id: 'hq', name: 'Equipo de Cuenta Microsoft', short: 'Account Team HQ', pillar: 'partners', kind: 'hq',
-    pos: [87, -61], model: 'Fuerza de ventas', billing: 'Compensación por ACR',
+    pos: [122, 45], model: 'Fuerza de ventas', billing: 'Compensación por ACR',
     desc: 'Estructura matricial: Account Executive / Client Director (relación y negociación), Solution Specialists (venta técnica Data/AI, Infra, Modern Work) y Cloud Solution Architects (ingeniería pre y post-venta, comisionados por Azure Consumed Revenue).',
     items: ['Account Executive', 'Solution Specialists', 'Cloud Solution Architects', 'ACR'],
   },
   {
     id: 'lsp', name: 'LSP · Licensing Solution Partner', short: 'LSP', pillar: 'partners', kind: 'warehouse',
-    pos: [87, -22], model: 'Partner', billing: 'Transaccional',
+    pos: [132, -8], model: 'Partner', billing: 'Transaccional',
     desc: 'Crayon, SoftwareOne, Insight: operación transaccional y gestión de contratos EA / MCA-E.',
     items: ['Crayon', 'SoftwareOne', 'Insight', 'Gestión EA/MCA-E'],
   },
   {
     id: 'gsi', name: 'GSI · Global Systems Integrator', short: 'GSI', pillar: 'partners', kind: 'construction',
-    pos: [87, 22], model: 'Partner', billing: 'Proyectos',
+    pos: [-28, -100], model: 'Partner', billing: 'Proyectos',
     desc: 'Accenture/Avanade, PwC, Kyndryl, Deloitte: migración e implementación de cargas hacia Azure y modernización.',
     items: ['Accenture / Avanade', 'PwC', 'Kyndryl', 'Deloitte'],
   },

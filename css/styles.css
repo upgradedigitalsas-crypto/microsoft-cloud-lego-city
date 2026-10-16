@@ -355,3 +355,39 @@ body:not(.no-detail) .world-guide, body.drawer-open .world-guide { display: none
   body.fleet-open:has(.customer-row) #minimap { display: none; }
 }
 @media (max-height: 580px) { .world-guide { display: none; } }
+
+/* A city-first experience: categories and search are intentionally hidden. */
+.topbar .search, .modes { display: none !important; }
+.topbar .brand { margin-right: auto; }
+.drawer { left: 12px; }
+#executive-panel { position:absolute; left:12px; top:164px; width:320px; max-height:calc(100vh - 182px); overflow:auto; padding:20px; z-index:24; }
+#executive-panel[hidden] { display:none; }
+#executive-panel h2 { font-size:23px; line-height:1.15; margin:14px 0; }
+#executive-panel p { font-size:13px; line-height:1.6; margin:12px 0; color:var(--ink-2); }
+#executive-panel small { font-size:10px; line-height:1.5; color:var(--ink-3); }
+.exec-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:10px; font-weight:800; text-transform:uppercase; color:#2563EB; }
+.exec-heading button { min-width:36px; min-height:36px; }
+.exec-options { display:grid; gap:7px; margin:16px 0; }
+.exec-options button { display:flex; justify-content:space-between; padding:13px; border:1px solid var(--line); border-radius:10px; text-align:left; background:#F6F9FD; }
+.exec-options button:hover { background:#E8F0FF; }
+.exec-actions { display:flex; justify-content:space-between; gap:8px; margin-top:16px; }
+.exec-actions button { min-height:44px; }
+body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tour .detail, body.executive-tour #fleet-toggle { display:none !important; }
+.world-guide #meet-client { margin-top:8px; }
+@media(max-width:900px) {
+  .topbar { flex-wrap:wrap; }
+  .detail, .drawer { top:90px; }
+  #executive-panel { top:auto; bottom:12px; left:8px; right:8px; width:auto; max-height:46vh; padding:14px; }
+  #executive-panel h2 { font-size:19px; }
+  .exec-options { grid-template-columns:1fr 1fr; }
+  .exec-options button { font-size:12px; min-height:44px; }
+  .world-guide #guide-executive { font-size:12px; }
+  .world-guide #meet-client { display:none; }
+}
+
+#beach-steps { padding-left:20px; font-size:13px; line-height:2; }
+#beach-steps .active { color:#2563EB; font-weight:800; }
+#beach-order:disabled { opacity:.6; cursor:progress; }
+.world-guide #beach-start { margin-top:8px; }
+/* Portfolio drawer trigger hidden at the user's request on every viewport. */
+#fleet-toggle { display: none !important; }

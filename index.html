@@ -27,11 +27,11 @@
         <div class="brand-brick"><i></i><i></i><i></i><i></i></div>
         <div>
           <div class="brand-name">CloudCity</div>
-          <div class="brand-sub">20 islas · un ecosistema vivo</div>
+          <div class="brand-sub">Una ciudad LEGO · Microsoft Cloud</div>
         </div>
       </div>
 
-      <div class="search">
+      <div class="search" hidden inert>
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="search" placeholder="Explorar el portafolio Microsoft Cloud…" autocomplete="off" />
         <kbd>/</kbd>
@@ -44,6 +44,7 @@
         <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>
 
+      <button class="btn" id="executive-start">Recorrido ejecutivo</button>
       <label class="layer-control">Capas
         <select id="layer-filter" aria-label="Filtrar pilares del mundo LEGO">
           <option value="all">Todo el portafolio</option><option value="security">Seguridad</option>
@@ -92,7 +93,7 @@
     </section>
 
     <!-- ====================== MODOS ====================== -->
-    <nav class="modes glass" id="modes">
+    <nav hidden inert class="modes glass" id="modes">
       <button data-mode="live" class="active"><span>🏙️</span>Ciudad en vivo</button>
       <button data-mode="arch"><span>🧱</span>Arquitectura</button>
       <button data-mode="resp"><span>⚖️</span>Responsabilidad</button>
@@ -146,11 +147,14 @@
       </div>
     </section>
 
+    <section id="executive-panel" class="glass" aria-label="Recorrido ejecutivo" aria-live="polite" hidden></section>
     <section class="world-guide glass" aria-label="Cómo funciona el mundo LEGO">
       <span class="world-kicker">MICROSOFT CLOUD · MUNDO LEGO</span>
-      <h2>Una isla. Un servicio.<br>Una solución para tu empresa.</h2>
-      <p>Los clientes llegan, usan la nube y salen con nuevas capacidades.</p>
-      <button class="btn" id="meet-client">Conocer a un cliente <span aria-hidden="true">→</span></button>
+      <h2>Una ciudad LEGO para transformar su empresa.</h2>
+      <p>Recorra oficinas, fábricas y centros de datos LEGO alrededor de OneLake. Descubra qué puede transformar con Microsoft.</p>
+      <button class="btn" id="guide-executive">Explorar objetivos de negocio →</button>
+      <button class="btn ghost" id="beach-start">Visitar playa automatizada →</button>
+      <button class="btn ghost" id="meet-client">Conocer a un cliente <span aria-hidden="true">→</span></button>
       <small>60 clientes · 20 especialistas · 20 islas</small>
     </section>
     <div class="toasts" id="toasts"></div>

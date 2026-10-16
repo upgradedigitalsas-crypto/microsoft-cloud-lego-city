@@ -160,3 +160,16 @@ picking, colores y propuestas sin instalar herramientas adicionales.
 La base rectangular fue reemplazada por una isla irregular en `js/terrain.js`,
 con estratos de tierra decrecientes hasta una punta inferior y océano animado
 por shader. El núcleo urbano de 224 × 164 conserva las 20 zonas de servicios.
+
+
+## 8. Ciudad para directivos y playa automatizada
+
+La distribución vigente está en `data.js`; `urban.js` define un bulevar elíptico
+y rutas por el sentido más corto. No utilizar X_ROADS/Z_ROADS como red vial:
+son referencias históricas. OneLake es un lago central de baldosas LEGO, rodeado
+de edificios, paseo y vegetación. Los vehículos y el minimapa usan BOULEVARD.
+`executive.js` explica las 20 representaciones con seis recorridos por objetivos.
+Power Platform es un taller de automatización, no una central eléctrica.
+La playa LEGO tiene un kiosco y robot; `beach.js` simula cuatro etapas de pedido
+sin conexiones externas. Buscador, categorías y botón de explorador ocultos.
+Mantener ES modules nativos y todo el diseño en LEGO.

@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { inLake } from './urban.js';
 import { PLATE, X_ROADS, Z_ROADS } from './data.js';
 
 export const ISLAND_STEP = 4;
 // Preserve every service lot inside an asymmetric, block-stepped coastline.
 export function isIslandLand(x, z) {
+  if (Math.hypot((x + 76) / 28, (z - 128) / 19) < 1) return true;
   if (x >= PLATE.minX && x <= PLATE.maxX && z >= PLATE.minZ && z <= PLATE.maxZ) return true;
   const angle = Math.atan2(z / 133, x / 168);
   const coast = 1 + 0.085 * Math.sin(3 * angle + 0.5) + 0.055 * Math.cos(5 * angle - 0.7);
@@ -24,7 +26,7 @@ export function buildIslandTerrain(scene, studs, world) {
       if (land) {
         add('#946944', x, -3.6, z, 4.8);
         add(edge ? '#E5CF90' : '#91BD68', x, edge ? -0.85 : -0.6, z, edge ? 0.7 : 1.2);
-        if (!edge && !X_ROADS.some(r => Math.abs(x - r) < 4) && !Z_ROADS.some(r => Math.abs(z - r) < 4)) studs.addWorld(x, 0.09, z, '#91BD68');
+        if (!edge && !inLake(x, z) && !X_ROADS.some(r => Math.abs(x - r) < 4) && !Z_ROADS.some(r => Math.abs(z - r) < 4)) studs.addWorld(x, 0.09, z, '#91BD68');
       }
     }
   }

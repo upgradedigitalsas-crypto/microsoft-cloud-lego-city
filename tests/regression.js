@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { buildCity } from '../js/city.js';
+import { BOULEVARD, streetRoute, inLake } from '../js/urban.js';
+import { CITY_STORIES, EXECUTIVE_ROUTES } from '../js/executive.js';
 import { isIslandLand } from '../js/terrain.js';
 import { PLATE, DISTRICTS } from '../js/data.js';
 import { SERVICE_ROLES } from '../js/ecosystem.js';
@@ -29,6 +31,15 @@ try {
   assert(sim.customers.people.length === 80 && sim.customers.people.filter(p => !p.host).length === 60, '60 clientes y 20 especialistas con población fija');
   assert(DISTRICTS.every(d => SERVICE_ROLES[d.id] && world.buildings.get(d.id).entrance && sim.customers.visitors(d.id).length === 3), 'Cada isla tiene un papel de Microsoft Cloud, acceso y tres clientes');
   assert(DISTRICTS.every(d => isIslandLand(d.pos[0], d.pos[1])) && !isIslandLand(185, 145) && isIslandLand(130, 0), 'Costa irregular conserva los servicios y se extiende fuera del antiguo rectángulo');
+  const covered = new Set(EXECUTIVE_ROUTES.flatMap(r => r.ids));
+  assert(DISTRICTS.every(d => CITY_STORIES[d.id] && covered.has(d.id)), 'Los seis recorridos ejecutivos explican los 20 edificios');
+  assert(BOULEVARD.every(([x,z]) => !inLake(x,z)), 'El bulevar rodea OneLake sin atravesar el lago');
+  assert(DISTRICTS.every(d => !inLake(...d.pos)), 'Los edificios conservan terreno fuera del lago');
+  for (let from=0;from<BOULEVARD.length;from++) for(let to=0;to<BOULEVARD.length;to++) {
+    const route=streetRoute(from,to);
+    if(route[0]!==BOULEVARD[from] || route.at(-1)!==BOULEVARD[to] || route.length>BOULEVARD.length/2+1) throw new Error('Ruta urbana incorrecta');
+  }
+  assert(true, 'Todas las rutas del bulevar son continuas y toman el sentido más corto');
   let events = 0;
   const deliveries = new Map();
   const unsubscribe = sim.on('event', () => events++);
@@ -88,6 +99,12 @@ try {
   assert(Math.abs(opt.net - 3160) < 0.01 && opt.saving === 6840, 'Optimización: costos y ahorro usan los mismos supuestos');
   assert(optimization({ gross: 10000, ri: 0, ahb: false, macc: 0 }).net === 10000, 'Sin reserva ni AHB no se inventa ahorro');
   assert(bundle({ seats: 500, current: 61.5, e5: 57 }).saving === 2250, 'Bundling escala ahorro por puestos');
+  let beachUpdates=0;
+  world.beach.subscribe(()=>beachUpdates++);
+  world.beach.start(); world.beach.start();
+  for(let i=0;i<260;i++) world.anims.forEach(fn=>fn(i*0.05,0.05));
+  assert(!world.beach.running && beachUpdates===6, 'Pedido de playa recorre cuatro etapas, evita duplicados y termina');
+  world.beach.subscribe(()=>{});
   const originalPrint = window.print;
   window.print = () => {};
   printProposal({ client: '<Cliente & prueba>', title: 'Test', rows: [['Ahorro', '$2.250']] });

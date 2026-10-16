@@ -2,6 +2,8 @@
 //  Ciudad LEGO: baseplate, calles y distritos del portafolio Microsoft Cloud
 // ============================================================================
 import * as THREE from 'three';
+import { buildBeach } from './beach.js';
+import { BOULEVARD, roadAccess } from './urban.js';
 import { SERVICE_ROLES } from './ecosystem.js';
 import { buildIslandTerrain } from './terrain.js';
 import { buildLandscape } from './landscape.js';
@@ -30,8 +32,10 @@ export function buildCity(scene) {
   }
   decorate(scene, studs, world);
   buildLandscape(scene, world, studs);
+  buildBeach(scene, world, studs);
   studs.flush(scene);
   batchStaticBricks(scene);
+  world.beach.group.traverse(o => { if(o.isMesh) o.userData.landmark = 'beach'; });
   // Include batched studs and sign materials in owner picking/filter lists.
   world.buildings.forEach(b => {
     b.meshes = [];
@@ -56,64 +60,36 @@ function onRoad(x, z, pad = 0) {
 }
 
 function buildRoads(scene) {
-  const roadM = new THREE.MeshStandardMaterial({ color: '#5B6573', roughness: 0.7 });
-  const lineM = new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.6 });
-  const curbM = new THREE.MeshStandardMaterial({ color: '#D3D9E2', roughness: 0.6 });
-  const w = PLATE.maxX - PLATE.minX, d = PLATE.maxZ - PLATE.minZ;
-  const cx = (PLATE.maxX + PLATE.minX) / 2, cz = (PLATE.maxZ + PLATE.minZ) / 2;
-  const batches = new Map();
-  const add = (geo, m, x, y, z) => {
-    const key = m.uuid + (geo.userData.primitiveKey || geo.type + JSON.stringify(geo.parameters));
-    if (!batches.has(key)) batches.set(key, { geo, m, positions: [] });
-    const batch = batches.get(key);
-    if (geo !== batch.geo) geo.dispose();
-    batch.positions.push([x, y, z]);
-  };
-
-  for (const z of Z_ROADS) {
-    add(rbox(w, 0.3, ROAD_W), roadM, cx, 0.15, z);
-    add(new THREE.BoxGeometry(w, 0.32, 0.35), curbM, cx, 0.16, z - ROAD_W / 2 - 0.1);
-    add(new THREE.BoxGeometry(w, 0.32, 0.35), curbM, cx, 0.16, z + ROAD_W / 2 + 0.1);
-    for (let x = PLATE.minX + 2; x < PLATE.maxX - 2; x += 4) {
-      if (X_ROADS.some(r => Math.abs(x - r) < ROAD_W / 2 + 1)) continue;
-      add(new THREE.BoxGeometry(2, 0.05, 0.25), lineM, x, 0.32, z);
-    }
+  const asphalt = new THREE.MeshStandardMaterial({ color: '#617082', roughness: 0.8 });
+  const curb = new THREE.MeshStandardMaterial({ color: '#E4D5B4' });
+  const paint = new THREE.MeshStandardMaterial({ color: '#FFF1BE' });
+  const segments = [];
+  BOULEVARD.forEach((a, i) => segments.push([a, BOULEVARD[(i + 1) % BOULEVARD.length], 7]));
+  for (const d of DISTRICTS) {
+    const access = roadAccess(...d.pos);
+    segments.push([access.point, access.dock, 5]);
   }
-  for (const x of X_ROADS) {
-    add(rbox(ROAD_W, 0.31, d), roadM, x, 0.155, cz);
-    add(new THREE.BoxGeometry(0.35, 0.33, d), curbM, x - ROAD_W / 2 - 0.1, 0.16, cz);
-    add(new THREE.BoxGeometry(0.35, 0.33, d), curbM, x + ROAD_W / 2 + 0.1, 0.16, cz);
-    for (let z = PLATE.minZ + 2; z < PLATE.maxZ - 2; z += 4) {
-      if (Z_ROADS.some(r => Math.abs(z - r) < ROAD_W / 2 + 1)) continue;
-      add(new THREE.BoxGeometry(0.25, 0.05, 2), lineM, x, 0.33, z);
-    }
+  const matrix = new THREE.Matrix4(), quaternion = new THREE.Quaternion(), position = new THREE.Vector3(), scale = new THREE.Vector3();
+  for (const [material, extra, height] of [[curb, 2, 0.18], [asphalt, 0, 0.24]]) {
+    const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), material, segments.length);
+    segments.forEach(([a, b, width], i) => {
+      quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(b[0] - a[0], b[1] - a[1]));
+      mesh.setMatrixAt(i, matrix.compose(position.set((a[0]+b[0])/2, height/2, (a[1]+b[1])/2), quaternion, scale.set(width+extra, height, Math.hypot(b[0]-a[0],b[1]-a[1])+0.5)));
+    });
+    mesh.receiveShadow = true; scene.add(mesh);
   }
-  // Intersecciones y pasos de cebra
-  for (const x of X_ROADS) for (const z of Z_ROADS) {
-    add(new THREE.BoxGeometry(ROAD_W + 0.7, 0.34, ROAD_W + 0.7), roadM, x, 0.17, z);
-    for (let i = -2; i <= 2; i++) {
-      add(new THREE.BoxGeometry(0.6, 0.05, 1.6), lineM, x + i * 1.1, 0.35, z + ROAD_W / 2 + 1.2);
-      add(new THREE.BoxGeometry(0.6, 0.05, 1.6), lineM, x + i * 1.1, 0.35, z - ROAD_W / 2 - 1.2);
-    }
-  }
-  const matrix = new THREE.Matrix4();
-  for (const { geo, m, positions } of batches.values()) {
-    const mesh = new THREE.InstancedMesh(geo, m, positions.length);
-    positions.forEach(([x, y, z], i) => mesh.setMatrixAt(i, matrix.makeTranslation(x, y, z)));
-    mesh.receiveShadow = true;
-    scene.add(mesh);
-  }
-
+  const marks = new THREE.InstancedMesh(new THREE.BoxGeometry(0.22, 0.04, 2), paint, BOULEVARD.length * 3);
+  BOULEVARD.forEach((a, i) => {
+    const b = BOULEVARD[(i+1)%BOULEVARD.length];
+    quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.atan2(b[0]-a[0],b[1]-a[1]));
+    for (let j=0;j<3;j++) { const f=(j+0.5)/3; marks.setMatrixAt(i*3+j,matrix.compose(position.set(a[0]+(b[0]-a[0])*f,0.27,a[1]+(b[1]-a[1])*f),quaternion,scale.set(1,1,1))); }
+  });
+  scene.add(marks);
 }
 
 // ---------------------------------------------------------------------------
 // Distritos
 // ---------------------------------------------------------------------------
-function roadFor(bz) {
-  const rz = Z_ROADS.reduce((nearest, z) => Math.abs(z - bz) < Math.abs(nearest - bz) ? z : nearest);
-  return { rz, dz: rz + (bz > rz ? 1 : -1) * 5.2 };
-}
-
 function buildDistrict(scene, def, studs) {
   const g = new THREE.Group();
   const [bx, bz] = def.pos;
@@ -123,8 +99,8 @@ function buildDistrict(scene, def, studs) {
   const ctx = { m, studs, color: PILLARS[def.pillar].color, def };
 
   // Lote: placa clara con borde de color del pilar
-  const lotW = Math.abs(bx) > 70 ? 28 : 34;
-  const lotD = Math.abs(bz) > 50 ? 26 : 30;
+  const lotW = 28;
+  const lotD = 26;
   plate(g, { w: lotW, d: lotD, color: '#F1F4F8', ctx, studs: false });
   tile(g, { w: lotW, d: 0.8, z: lotD / 2 - 0.4, y: 0.01, color: ctx.color, ctx, h: 0.42 });
   tile(g, { w: lotW, d: 0.8, z: -lotD / 2 + 0.4, y: 0.01, color: ctx.color, ctx, h: 0.42 });
@@ -133,14 +109,10 @@ function buildDistrict(scene, def, studs) {
   const res = builder(g, ctx) || {};
   const height = res.height || 8;
 
-  const { rz, dz } = roadFor(bz);
-  // Zona de muelle (franja amarilla)
-  const dockLocalZ = dz - bz;
+  const access = roadAccess(bx, bz);
+  const [rx, rz] = access.point, [dx, dz] = access.dock;
   const dock = new THREE.Group(); g.add(dock);
-  for (let i = -1; i <= 1; i++) {
-    tile(dock, { w: 3.8, d: 0.25, x: i * 5, z: dockLocalZ + (dz > rz ? 2.2 : -2.2), y: 0.4, color: '#F2C200', ctx, h: 0.06 });
-  }
-
+  for (let i = -1; i <= 1; i++) tile(dock, { w: 3.8, d: 0.25, x: dx-bx+i*5, z: dz-bz, y: 0.3, color: '#F2C200', ctx, h: 0.06 });
   const entrance = buildServiceEntrance(g, ctx, lotW, lotD);
   // Recolecta meshes para picking y atenuado
   const meshes = [];
@@ -149,9 +121,9 @@ function buildDistrict(scene, def, studs) {
   return {
     def, group: g, height, anims: res.anims || [], api: res.api || {}, entrance,
     lot: { width: lotW, depth: lotD },
-    road: new THREE.Vector3(bx, 0, rz),
-    dock: new THREE.Vector3(bx, 0, dz),
-    slots: [-5, 0, 5].map(o => new THREE.Vector3(bx + o, 0, dz)),
+    roadIndex: access.index, road: new THREE.Vector3(rx, 0, rz),
+    dock: new THREE.Vector3(dx, 0, dz),
+    slots: [-5, 0, 5].map(o => new THREE.Vector3(dx + o, 0, dz)),
     materials: m.all(), meshes,
     size: new THREE.Vector3(res.w || 14, height, res.d || 12),
   };
@@ -322,21 +294,19 @@ const BUILDERS = {
       brick(g, { w: 3.6, d: 6, h, x, z: -2, y: PLATE_H, color: c, ctx });
       sign(g, l, { w: 3.2, h: 1, x, y: h - 0.6, z: 1.03, bg: '#ffffff', fg: c });
     });
-    const turbines = [];
-    [[6.5, -3], [9.5, 1]].forEach(([x, z]) => {
-      roundBrick(g, { r: 0.35, h: 10, x, z, y: PLATE_H, color: WHITE, ctx, stud: false });
-      const hub = new THREE.Group(); hub.position.set(x, 10.6, z + 0.5); g.add(hub);
-      for (let k = 0; k < 3; k++) {
-        const blade = new THREE.Mesh(rbox(0.5, 4, 0.15), ctx.m(WHITE));
-        blade.position.y = 2; const arm = new THREE.Group(); arm.add(blade); arm.rotation.z = k * 2.094; hub.add(arm);
-      }
-      const nose = new THREE.Mesh(new THREE.SphereGeometry(0.45), ctx.m(ctx.color)); hub.add(nose);
-      turbines.push(hub);
-    });
+    // A workshop conveyor represents app-driven processes, not electricity generation.
+    brick(g,{x:6.5,z:0,y:0.8,w:4,d:9,h:0.8,color:'#34455B',ctx,studs:false});
+    const jobs=[];
+    for(let i=0;i<3;i++) {
+      const job=new THREE.Group();g.add(job);
+      brick(job,{y:1.6,w:1.5,d:1.5,h:0.8,color:['#742774','#0066FF','#F2C811'][i],ctx});
+      jobs.push(job);
+    }
+    sign(g,'TALLER DE AUTOMATIZACIÓN',{x:0,z:-5,y:10,w:16,h:1.5,bg:'#742774',fg:'#FFFFFF'});
     // Dataverse: plataforma base
     tile(g, { w: 13, d: 1.4, h: 0.5, x: -1.8, z: 2.6, y: PLATE_H, color: '#2D7D9A', ctx });
     sign(g, 'Dataverse', { w: 6, h: 0.5, x: -1.8, y: 0.66, z: 3.32, bg: '#2D7D9A', fg: '#fff' });
-    return { height: 13, w: 20, d: 10, anims: [t => turbines.forEach((h, i) => { h.rotation.z = t * (1.4 + i * 0.3); })] };
+    return { height: 11, w: 20, d: 10, anims: [t => jobs.forEach((job,i) => job.position.set(6.5,0,((t*1.1+i*2.7)%8)-4))] };
   },
 
   // Azure IaaS: datacenter con racks parpadeantes
@@ -612,8 +582,8 @@ function decorate(scene, studs, world) {
   const ctx = { studs, m: matCache() };
   // Árboles y farolas junto a las calles
   const lampM = new THREE.MeshStandardMaterial({ color: '#fff7d6', emissive: '#ffe9a0', emissiveIntensity: 0.6 });
-  for (const z of Z_ROADS) for (let x = PLATE.minX + 8; x < PLATE.maxX - 4; x += 16) {
-    if (onRoad(x, z + 5, 1)) continue;
+  for (const [rx, rz] of BOULEVARD) {
+    const x = rx * 1.06, z = rz * 1.06;
     const pole = new THREE.Mesh(cylGeo(0.12, 4, 8), new THREE.MeshStandardMaterial({ color: '#8B95A3' }));
     pole.position.set(x, 2, z + ROAD_W / 2 + 0.8); pole.castShadow = true; scene.add(pole);
     const lamp = new THREE.Mesh(rbox(0.9, 0.3, 0.5), lampM); lamp.position.set(x, 4, z + ROAD_W / 2 + 0.4); scene.add(lamp);

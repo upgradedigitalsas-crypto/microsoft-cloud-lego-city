@@ -121,3 +121,26 @@ registró 1.332 draw calls sin sombras; esa cifra no equivale a una garantía de
 La base exterior es una isla irregular tipo iceberg de tierra, con estratos de
 bloques que convergen en una punta. El océano circundante anima olas y normales
 en el shader, reutilizando una única malla. `js/terrain.js` define esta base.
+
+
+### Ciudad ejecutiva alrededor de OneLake
+
+La ciudad sustituye la cuadrícula por un bulevar elíptico compartido entre
+geometría, rutas, patrullas y minimapa (`js/urban.js`). Los veinte edificios
+se distribuyen en barrios alrededor de un lago LEGO, con paseo, muelle y parques.
+Power Platform se representa como taller de aplicaciones y automatización.
+
+El **Recorrido ejecutivo** ofrece seis objetivos de negocio y cubre los veinte
+edificios. Cada parada explica capacidad, metáfora urbana, indicador y siguiente
+decisión. `js/executive.js` centraliza estas historias; no promete retornos.
+El buscador, categorías y botón «Explorar portafolio» están ocultos por solicitud
+del usuario. La selección 3D y el recorrido permanecen disponibles.
+
+La **playa automatizada** (`js/beach.js`) ofrece una demostración local de pedido,
+agente, coordinación del reparto robótico y resultado analítico. No conecta
+servicios ni ejecuta pedidos reales. Su máquina de estados bloquea duplicados
+y permite repetir el proceso, sin crear objetos nuevos por pedido.
+
+Pruebas: todas las rutas del bulevar, cobertura ejecutiva, 24.000 pasos de
+simulación y ciclo de playa. La escena de prueba registra 1.370 draw calls sin
+sombras; no constituye una medición de 60 FPS en dispositivos reales.

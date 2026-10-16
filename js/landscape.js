@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import { X_ROADS, Z_ROADS } from './data.js';
+import { DISTRICTS } from './data.js';
+import { inLake, BOULEVARD } from './urban.js';
+import { isIslandLand } from './terrain.js';
 import { rbox, plastic, sign } from './lego.js';
 
 // Voxel terrain and trees share a handful of draw calls across the whole world.
@@ -9,7 +11,7 @@ export function buildLandscape(scene, world, studs) {
     if (!batches.has(color)) batches.set(color, []);
     batches.get(color).push([x, y, z, w, h, d]);
   };
-  const road = (x, z) => X_ROADS.some(r => Math.abs(x - r) < 5) || Z_ROADS.some(r => Math.abs(z - r) < 5);
+  const occupied = (x,z) => DISTRICTS.some(d => Math.abs(x-d.pos[0])<18 && Math.abs(z-d.pos[1])<20) || BOULEVARD.some(p => Math.hypot(x-p[0],z-p[1])<9);
   const voxelTree = (x, z, h = 4) => {
     add('#895A34', x, h / 2, z, 0.9, h, 0.9);
     add('#3B954D', x, h + 0.6, z, 4.2, 2.2, 3.8);
@@ -17,29 +19,33 @@ export function buildLandscape(scene, world, studs) {
     add('#85CF58', x - 0.4, h + 3.0, z, 2.2, 0.6, 2.1);
     studs.addWorld(x - 0.4, h + 3.4, z, '#85CF58');
   };
-  // Open green strips preserve breathing room between service islands.
-  for (let x = -102; x <= 102; x += 12) {
-    if (!road(x, -78)) voxelTree(x, -78, 3.3 + (Math.abs(x) % 3));
-    if (!road(x, 78)) voxelTree(x, 78, 4.3);
+  // OneLake is the civic center: a lake built from blue LEGO tiles, not a road grid.
+  for (let x=-36;x<=36;x+=2) for (let z=-30;z<=30;z+=2) {
+    if (inLake(x,z)) add((x+z)%6===0?'#32B6D5':'#238DBC',x,0.34,z,2,0.25,2);
+    else if (inLake(x*0.9,z*0.9)) { add('#EBD9AD',x,0.28,z,2,0.4,2); studs.addWorld(x,0.56,z,'#EBD9AD'); }
   }
-  for (const x of [-105, 105]) for (let z = -62; z < 68; z += 14) {
-    if (!road(x, z)) voxelTree(x, z, 3.5);
+  // Waterfront promenade, benches and green belts follow the island, not a rectangle.
+  for (let i=0;i<110;i++) {
+    const a=i*Math.PI*2/110, x=Math.cos(a)*40,z=Math.sin(a)*31;
+    if (!occupied(x,z)) add('#EADCC0',x,0.34,z,3.1,0.3,3.1);
   }
-  for (const x of [-23, 23]) for (const z of [-72, -34, 10, 56]) {
-    voxelTree(x + 7, z, 3);
+  for (let i=0;i<80;i++) {
+    const a=i*Math.PI*2/80, x=Math.cos(a)*143,z=Math.sin(a)*113;
+    if (isIslandLand(x,z) && !occupied(x,z)) voxelTree(x,z,3+(i%3));
   }
-  // A block-built OneLake-inspired data canal and connector bridges.
-  add('#36ADD5', -106, 0.18, -1, 6, 0.28, 150);
-  for (const z of Z_ROADS) {
-    add('#E7D4A1', -106, 0.6, z, 9.5, 0.5, 6);
-    add('#FAF3DD', -106, 1.35, z - 3.1, 10, 0.5, 0.4);
-    add('#FAF3DD', -106, 1.35, z + 3.1, 10, 0.5, 0.4);
+  for (const [x,z] of [[-39,-6],[-32,30],[40,8],[0,33],[-10,-33]]) {
+    if (!occupied(x,z)) { voxelTree(x,z,3); add('#9C653F',x+4,0.9,z,3,0.35,1); add('#9C653F',x+4,1.65,z-0.5,3,1,0.25); }
   }
-  // Elevated voxel hills outside the service lots.
-  for (const [x, z] of [[-104, -74], [103, 74]]) {
-    add('#7EA454', x, 1.2, z, 11, 2.4, 11);
-    add('#A5BF6A', x + 1, 3.0, z, 7, 1.2, 7);
-    add('#E6D7AC', x + 1, 4.0, z, 4, 0.8, 4);
+  // A timber data pier joins the Fabric lakehouse to OneLake.
+  for(let z=20;z<=32;z+=2) add('#C4965F',24,0.8,z,5,0.5,1.9);
+  const lakeSign = new THREE.Group(); scene.add(lakeSign);
+  sign(lakeSign,'OneLake', {x:0,y:2.5,z:0,w:15,h:3,bg:'#126F9F',fg:'#FFFFFF'});
+  sign(lakeSign,'DATOS COMPARTIDOS DEL NEGOCIO', {x:0,y:0.95,z:0,w:20,h:1.4,bg:'#FFFFFF',fg:'#126F9F'});
+  // Park pavilions make the shared public space legible at street level.
+  for (const [x,z,color] of [[-12,20,'#F2C200'],[12,-20,'#9B5CD6']]) {
+    add('#F5F0DA',x,0.6,z,6,1,4); add(color,x,3.2,z,7,0.6,5);
+    for(const dx of [-2.5,2.5]) add('#FFFFFF',x+dx,1.9,z,0.6,2.5,0.6);
+    studs.addWorld(x,3.65,z,color);
   }
   const matrix = new THREE.Matrix4(), q = new THREE.Quaternion();
   const p = new THREE.Vector3(), scale = new THREE.Vector3();
@@ -61,7 +67,7 @@ export function buildLandscape(scene, world, studs) {
     cloud.position.set(x, 29 + i * 3, z); scene.add(cloud);
     world.anims.push(t => { cloud.position.x = x + Math.sin(t * 0.025 + i) * 6; });
   }
-  const welcome = new THREE.Group(); welcome.position.set(0, 0, 78); scene.add(welcome);
+  const welcome = new THREE.Group(); welcome.position.set(6, 0, 125); scene.add(welcome);
   sign(welcome, 'MICROSOFT CLOUD', { w: 18, h: 2.6, y: 3.2, bg: '#FFFFFF', fg: '#17456B', logo: 'ms' });
   sign(welcome, 'UN MUNDO DE SERVICIOS', { w: 16, h: 1.2, y: 1.1, bg: '#2169B5', fg: '#FFFFFF' });
 }

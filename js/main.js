@@ -10,6 +10,9 @@ import {
 import { brackets, disposeGeometryCaches } from './lego.js';
 import { buildCity } from './city.js';
 import { Simulation, STATUS } from './sim.js';
+import { BEACH_STEPS } from './beach.js';
+import { CITY_STORIES, initExecutiveTour } from './executive.js';
+import { BOULEVARD } from './urban.js';
 import { SERVICE_ROLES, CUSTOMER_STATES } from './ecosystem.js';
 import { pointerNDC } from './picking.js';
 import { BrickAudio } from './audio.js';
@@ -223,6 +226,7 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 const pickables = [...sim.customers.meshes];
+world.beach.group.traverse(o => { if(o.isMesh) pickables.push(o); });
 world.buildings.forEach(b => pickables.push(...b.meshes));
 sim.all().forEach(v => v.group.traverse(o => {
   if (o.isMesh && o !== v.group.userData.beam) pickables.push(o);
@@ -252,6 +256,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   // One distance-sorted query respects occlusion across vehicles and buildings.
   const hit = raycaster.intersectObjects(pickables, false).find(h =>
     h.object.visible && (h.object.material.opacity === undefined || h.object.material.opacity > 0.05));
+  if (hit?.object.userData.landmark === 'beach') { openBeach(); return; }
   const id = hit?.object.userData.customerIds?.[hit.instanceId] || hit?.object.userData.entityId;
   if (id) selectEntity(world.buildings.has(id) ? 'district' : 'vehicle', id);
   else selectEntity(null, null);
@@ -297,6 +302,7 @@ function renderDetail() {
         <span class="pill green">${sim.customers.totals.get(id)} visitas completadas</span>
         <span class="pill green">Operando</span>
       </div>
+      <div class="customer-journey"><small>${CITY_STORIES[id][0]}</small><b>${CITY_STORIES[id][1]}</b><p>${CITY_STORIES[id][2]}</p><small>INDICADOR PARA SU EMPRESA</small><p>${CITY_STORIES[id][3]}</p></div>
       <p class="d-desc">${d.desc}</p>
       <div class="customer-journey"><small>LA VIDA EN ESTA ISLA</small><b>${serviceRole.host}</b>
         <p>${serviceRole.need} → ${serviceRole.result}</p>
@@ -571,8 +577,8 @@ function updateMinimap() {
   mmCtx.clearRect(0, 0, cw, ch);
 
   // Mapeo coordenadas del mundo [-78..78, -52..54] a canvas [0..cw, 0..ch]
-  const mapX = x => ((x - PLATE.minX) / (PLATE.maxX - PLATE.minX)) * (cw - 16) + 8;
-  const mapZ = z => ((z - PLATE.minZ) / (PLATE.maxZ - PLATE.minZ)) * (ch - 16) + 8;
+  const mapX = x => ((x - -158) / (158 - -158)) * (cw - 16) + 8;
+  const mapZ = z => ((z - -130) / (130 - -130)) * (ch - 16) + 8;
 
   // Fondo del baseplate
   mmCtx.fillStyle = '#CBD3DE';
@@ -580,14 +586,10 @@ function updateMinimap() {
   mmCtx.roundRect(4, 4, cw - 8, ch - 8, 8);
   mmCtx.fill();
 
-  // Calles
-  mmCtx.fillStyle = '#5B6573';
-  Z_ROADS.forEach(z => {
-    mmCtx.fillRect(6, mapZ(z) - 3, cw - 12, 6);
-  });
-  X_ROADS.forEach(x => {
-    mmCtx.fillRect(mapX(x) - 3, 6, 6, ch - 12);
-  });
+  mmCtx.fillStyle = '#238DBC';
+  mmCtx.beginPath(); mmCtx.ellipse(mapX(0),mapZ(0),cw*0.105,ch*0.09,0,0,Math.PI*2); mmCtx.fill();
+  mmCtx.strokeStyle = '#5B6573'; mmCtx.lineWidth = 4;
+  mmCtx.beginPath(); BOULEVARD.forEach(([x,z],i) => i ? mmCtx.lineTo(mapX(x),mapZ(z)) : mmCtx.moveTo(mapX(x),mapZ(z))); mmCtx.closePath(); mmCtx.stroke();
 
   // Edificios
   DISTRICTS.forEach(d => {
@@ -648,8 +650,8 @@ minimapCanvas.addEventListener('click', (e) => {
   const rect = minimapCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  const worldX = PLATE.minX + THREE.MathUtils.clamp((x / rect.width * minimapCanvas.width - 8) / (minimapCanvas.width - 16), 0, 1) * (PLATE.maxX - PLATE.minX);
-  const worldZ = PLATE.minZ + THREE.MathUtils.clamp((y / rect.height * minimapCanvas.height - 8) / (minimapCanvas.height - 16), 0, 1) * (PLATE.maxZ - PLATE.minZ);
+  const worldX = -158 + THREE.MathUtils.clamp((x / rect.width * minimapCanvas.width - 8) / (minimapCanvas.width - 16), 0, 1) * (158 - -158);
+  const worldZ = -130 + THREE.MathUtils.clamp((y / rect.height * minimapCanvas.height - 8) / (minimapCanvas.height - 16), 0, 1) * (130 - -130);
   const targetLook = new THREE.Vector3(worldX, 4, worldZ);
   const targetPos = targetLook.clone().add(new THREE.Vector3(60, 65, 75));
   flyCameraTo(targetPos, targetLook, 0.8);
@@ -1072,7 +1074,7 @@ const searchInput = document.getElementById('search');
 const searchResults = document.getElementById('search-results');
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {
+  if (searchInput.getClientRects().length && e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {
     e.preventDefault();
     searchInput.focus();
     searchInput.select();
@@ -1402,3 +1404,23 @@ document.getElementById('meet-client').addEventListener('click', () => {
   const person = sim.customers.visitors(district).find(p => p.status === 'entering') || sim.customers.visitors(district)[0];
   selectEntity('customer', person.id);
 });
+
+initExecutiveTour(selectEntity);
+
+function openBeach() {
+  selectEntity(null,null);
+  const panel=document.getElementById('executive-panel');
+  panel.hidden=false; document.body.classList.add('executive-tour');
+  flyCameraTo(new THREE.Vector3(-42,34,169),new THREE.Vector3(-76,2,128),1);
+  panel.innerHTML=`<div class="exec-heading"><span>PLAYA LEGO AUTOMATIZADA</span><button id="beach-close" aria-label="Cerrar playa">✕</button></div><h2>Del pedido al servicio</h2><p>Un ejemplo de cómo conectar aplicaciones, agentes, automatización y datos en una experiencia de cliente.</p><ol id="beach-steps">${BEACH_STEPS.map(([title],i)=>`<li data-step="${i}">${title}</li>`).join('')}</ol><p id="beach-status" role="status"></p><button class="btn" id="beach-order">Simular un pedido</button><p><small>Demostración local. No realiza pedidos reales ni conecta servicios Microsoft. Los robots necesitan integración con sistemas físicos; las excepciones requieren atención humana.</small></p>`;
+  const status=panel.querySelector('#beach-status'),button=panel.querySelector('#beach-order');
+  world.beach.subscribe((phase,count)=>{
+    if(!status.isConnected)return;
+    status.textContent=phase<0?`${count} pedidos completados en esta sesión. Inicie una visita para ver el flujo.`:BEACH_STEPS[phase][1];
+    button.disabled=phase>=0;
+    panel.querySelectorAll('[data-step]').forEach(el=>el.classList.toggle('active',Number(el.dataset.step)===phase));
+  });
+  button.onclick=()=>world.beach.start();
+  panel.querySelector('#beach-close').onclick=()=>{world.beach.subscribe(()=>{});panel.hidden=true;document.body.classList.remove('executive-tour');};
+}
+document.getElementById('beach-start').onclick=openBeach;
