@@ -2,6 +2,7 @@
 //  LEGO primitives: ladrillos, placas, studs instanciados, vehículos, minifigs
 // ============================================================================
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 export const BRICK_H = 1.2;
@@ -56,23 +57,28 @@ export function matCache() {
 // ---------------------------------------------------------------------------
 export class StudBatch {
   constructor() { this.byColor = new Map(); }
-  add(obj, x, y, z, color) {
+  add(obj, x, y, z, color, material) {
     if (!this.byColor.has(color)) this.byColor.set(color, []);
-    this.byColor.get(color).push({ obj, v: new THREE.Vector3(x, y, z) });
+    this.byColor.get(color).push({ obj, material, v: new THREE.Vector3(x, y, z) });
   }
   addWorld(x, y, z, color) { this.add(null, x, y, z, color); }
   flush(scene) {
-    const m4 = new THREE.Matrix4();
+    const matrix = new THREE.Matrix4();
     for (const [color, list] of this.byColor) {
-      const mesh = new THREE.InstancedMesh(studGeo, plastic(color), list.length);
-      list.forEach((s, i) => {
-        const p = s.obj ? s.obj.localToWorld(s.v.clone()) : s.v;
-        m4.makeTranslation(p.x, p.y, p.z);
-        mesh.setMatrixAt(i, m4);
-      });
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
+      const owners = new Map();
+      for (const item of list) {
+        const owner = item.obj || scene;
+        if (!owners.has(owner)) owners.set(owner, []);
+        owners.get(owner).push(item);
+      }
+      for (const [owner, items] of owners) {
+        const material = items[0].material || plastic(color);
+        const mesh = new THREE.InstancedMesh(studGeo, material, items.length);
+        items.forEach((item, i) => mesh.setMatrixAt(i, matrix.makeTranslation(item.v.x, item.v.y, item.v.z)));
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        owner.add(mesh);
+      }
     }
     this.byColor.clear();
   }
@@ -86,6 +92,7 @@ export function brick(parent, o) {
   const { w = 2, d = 2, h = BRICK_H, x = 0, y = 0, z = 0, color = '#ffffff', studs = 'batch', mat, ctx } = o;
   const material = mat || (ctx?.m ? ctx.m(color) : plastic(color));
   const mesh = new THREE.Mesh(rbox(w, h, d), material);
+  mesh.userData.staticBrick = true;
   mesh.position.set(x, y + h / 2, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -93,19 +100,12 @@ export function brick(parent, o) {
   if (studs) {
     const nx = Math.max(1, Math.round(w)), nz = Math.max(1, Math.round(d));
     const sx = w / nx, sz = d / nz;
+    const batch = studs === 'batch' && ctx?.studs ? ctx.studs : new StudBatch();
     for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
-      const px = x - w / 2 + sx * (i + 0.5);
-      const pz = z - d / 2 + sz * (j + 0.5);
-      const py = y + h + STUD_H / 2;
-      if (studs === 'batch' && ctx?.studs) {
-        ctx.studs.add(parent, px, py, pz, '#' + material.color.getHexString());
-      } else {
-        const s = new THREE.Mesh(studGeo, material);
-        s.position.set(px, py, pz);
-        s.castShadow = true;
-        parent.add(s);
-      }
+      batch.add(parent, x - w / 2 + sx * (i + 0.5), y + h + STUD_H / 2,
+        z - d / 2 + sz * (j + 0.5), '#' + material.color.getHexString(), material);
     }
+    if (batch !== ctx?.studs) batch.flush(parent);
   }
   return mesh;
 }
@@ -116,6 +116,7 @@ export function roundBrick(parent, o) {
   const { r = 1, h = BRICK_H, x = 0, y = 0, z = 0, color = '#fff', ctx, mat, stud = true, seg = 24 } = o;
   const material = mat || (ctx?.m ? ctx.m(color) : plastic(color));
   const mesh = new THREE.Mesh(cylGeo(r, h, seg), material);
+  mesh.userData.staticBrick = true;
   mesh.position.set(x, y + h / 2, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -345,4 +346,40 @@ export function brackets(color = '#2563EB') {
   const lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color, depthTest: false, transparent: true }));
   lines.renderOrder = 999;
   return lines;
+}
+
+// Merge only explicitly static primitives; animated parents remain independent.
+export function batchStaticBricks(root) {
+  const parents = [];
+  root.traverse(o => { if (o.children.length) parents.push(o); });
+  for (const parent of parents) {
+    const batches = new Map();
+    for (const mesh of parent.children) {
+      if (!mesh.isMesh || !mesh.userData.staticBrick || mesh.children.length) continue;
+      if (!batches.has(mesh.material)) batches.set(mesh.material, []);
+      batches.get(mesh.material).push(mesh);
+    }
+    for (const [material, meshes] of batches) {
+      if (meshes.length < 2) continue;
+      const copies = meshes.map(mesh => {
+        mesh.updateMatrix();
+        // Rounded boxes are non-indexed; cylinders are indexed. Normalize first.
+        const copy = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+        return copy.applyMatrix4(mesh.matrix);
+      });
+      const geometry = mergeGeometries(copies);
+      copies.forEach(g => g.dispose());
+      if (!geometry) continue;
+      const merged = new THREE.Mesh(geometry, material);
+      merged.castShadow = true; merged.receiveShadow = true;
+      meshes.forEach(mesh => parent.remove(mesh));
+      parent.add(merged);
+    }
+  }
+}
+
+export function disposeGeometryCaches() {
+  geoCache.forEach(g => g.dispose()); geoCache.clear();
+  cylCache.forEach(g => g.dispose()); cylCache.clear();
+  studGeo.dispose();
 }

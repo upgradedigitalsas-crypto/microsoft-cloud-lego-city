@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { DISTRICTS, PILLARS, X_ROADS, Z_ROADS, PLATE } from './data.js';
 import {
   brick, plate, tile, roundBrick, sign, tree, matCache, StudBatch, minifig, forklift,
-  rbox, cylGeo, signTexture, BRICK_H, PLATE_H,
+  rbox, cylGeo, signTexture, BRICK_H, PLATE_H, batchStaticBricks,
 } from './lego.js';
 
 const ROAD_W = 6;
@@ -27,6 +27,19 @@ export function buildCity(scene) {
   }
   decorate(scene, studs, world);
   studs.flush(scene);
+  batchStaticBricks(scene);
+  // Include batched studs and sign materials in owner picking/filter lists.
+  world.buildings.forEach(b => {
+    b.meshes = [];
+    const materials = new Set();
+    b.group.traverse(o => {
+      if (!o.isMesh) return;
+      o.userData.entityId = b.def.id;
+      b.meshes.push(o);
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => materials.add(m));
+    });
+    b.materials = [...materials];
+  });
   return world;
 }
 
@@ -65,7 +78,14 @@ function buildRoads(scene) {
   const curbM = new THREE.MeshStandardMaterial({ color: '#D3D9E2', roughness: 0.6 });
   const w = PLATE.maxX - PLATE.minX, d = PLATE.maxZ - PLATE.minZ;
   const cx = (PLATE.maxX + PLATE.minX) / 2, cz = (PLATE.maxZ + PLATE.minZ) / 2;
-  const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.receiveShadow = true; scene.add(o); return o; };
+  const batches = new Map();
+  const add = (geo, m, x, y, z) => {
+    const key = m.uuid + JSON.stringify(geo.parameters);
+    if (!batches.has(key)) batches.set(key, { geo, m, positions: [] });
+    const batch = batches.get(key);
+    if (geo !== batch.geo) geo.dispose();
+    batch.positions.push([x, y, z]);
+  };
 
   for (const z of Z_ROADS) {
     add(rbox(w, 0.3, ROAD_W), roadM, cx, 0.15, z);
@@ -93,6 +113,14 @@ function buildRoads(scene) {
       add(new THREE.BoxGeometry(0.6, 0.05, 1.6), lineM, x + i * 1.1, 0.35, z - ROAD_W / 2 - 1.2);
     }
   }
+  const matrix = new THREE.Matrix4();
+  for (const { geo, m, positions } of batches.values()) {
+    const mesh = new THREE.InstancedMesh(geo, m, positions.length);
+    positions.forEach(([x, y, z], i) => mesh.setMatrixAt(i, matrix.makeTranslation(x, y, z)));
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+
 }
 
 // ---------------------------------------------------------------------------

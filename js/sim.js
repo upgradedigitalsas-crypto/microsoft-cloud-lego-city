@@ -46,7 +46,11 @@ export class Simulation {
     this.nextEvent = 3;
   }
 
-  on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
+  on(type, fn) {
+    const listener = (eventType, payload) => { if (eventType === type) fn(payload); };
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
   emit(type, payload) { this.listeners.forEach(f => f(type, payload)); }
 
   B(id) { return this.world.buildings.get(id); }
@@ -126,10 +130,12 @@ export class Simulation {
     const busy = this.busy.get(bid) || new Set();
     this.busy.set(bid, busy);
     let idx = [1, 0, 2].find(i => !busy.has(i));
-    if (idx === undefined) idx = randi(0, 2);
+    // Overflow bays keep reservations exclusive even during peak arrivals.
+    if (idx === undefined) { idx = 3; while (busy.has(idx)) idx++; }
     busy.add(idx);
     v._slotRef = { bid, idx };
-    return b.slots[idx].clone();
+    return idx < b.slots.length ? b.slots[idx].clone()
+      : b.dock.clone().add(new THREE.Vector3((idx - 2) * 5, 0, b.dock.z > b.road.z ? 5 : -5));
   }
   releaseSlot(v) {
     if (!v._slotRef) return;
@@ -163,6 +169,7 @@ export class Simulation {
   }
 
   setPath(v, fromId, toId) {
+    this.releaseSlot(v);
     const A = this.B(fromId), Bb = this.B(toId);
     const road = [A.road.clone()];
     if (A.road.z !== Bb.road.z) {
@@ -185,7 +192,7 @@ export class Simulation {
 
   // ------------------------------------------------------------------ update
   update(dt, t) {
-    dt = Math.min(dt, 0.05);
+    dt = Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, 0.05) : 0;
     for (const v of this.vehicles) v.kind === 'patrol' ? this.updatePatrol(v, dt, t) : this.updateTruck(v, dt, t);
     for (const d of this.drones) this.updateDrone(d, dt, t);
     for (const w of this.walkers) this.updateWalker(w, dt, t);
@@ -240,13 +247,13 @@ export class Simulation {
     const remaining = v.path.total - v.s;
     if (remaining < 6) limit = Math.max(2, target * remaining / 6);
     // Evitar colisiones simples
-    const fwd = new THREE.Vector3(Math.cos(v.heading), 0, -Math.sin(v.heading));
+    const forwardX = Math.cos(v.heading), forwardZ = -Math.sin(v.heading);
     if (!(v.ghost > 0)) for (const o of this.vehicles) {
       if (o === v) continue;
-      const d = o.group.position.clone().sub(g.position); d.y = 0;
-      const ahead = d.dot(fwd);
+      const dx = o.group.position.x - g.position.x, dz = o.group.position.z - g.position.z;
+      const ahead = dx * forwardX + dz * forwardZ;
       if (ahead > 0 && ahead < 6.5) {
-        const lateral = Math.abs(d.x * fwd.z - d.z * fwd.x);
+        const lateral = Math.abs(dx * forwardZ - dz * forwardX);
         if (lateral < 1.3) limit = Math.min(limit, Math.max(0, (ahead - 4.2) * 2));
       }
     }
@@ -262,7 +269,7 @@ export class Simulation {
       v.heading = lerpAngle(v.heading, h, Math.min(1, dt * 8));
       g.rotation.y = v.heading;
     }
-    g.userData.wheels.forEach(w => { w.children.forEach(c => { }); w.rotation.y += v.speed * dt * 1.5; });
+    g.userData.wheels.forEach(w => { w.rotation.y += v.speed * dt * 1.5; });
     if (v.status === 'transit' && remaining < 10) v.status = 'docking';
     if (v.s >= v.path.total - 0.01) {
       if (v.status === 'reposition') {
@@ -324,20 +331,18 @@ export class Simulation {
       d.t += dt / d.dur;
       const k = Math.min(1, d.t);
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-      const p = d.from.clone().lerp(d.to, e);
-      p.y += Math.sin(k * Math.PI) * 8;
-      const dir = d.to.clone().sub(d.from);
-      g.position.copy(p);
-      g.rotation.y = Math.atan2(-dir.z, dir.x);
+      g.position.lerpVectors(d.from, d.to, e);
+      g.position.y += Math.sin(k * Math.PI) * 8;
+      g.rotation.y = Math.atan2(d.from.z - d.to.z, d.to.x - d.from.x);
       g.rotation.z = -0.25 * Math.sin(k * Math.PI);
       if (k >= 1) {
         g.rotation.z = 0;
         if (d.status === 'flying') { d.status = 'working'; d.dwell = 3 + Math.random() * 2; d.timeline[2].t = Date.now(); }
-        else { d.status = 'pad'; d.dwell = 1.5 + Math.random() * 3; d.timeline[4].t = Date.now(); }
+        else { g.position.copy(d.pad); d.status = 'pad'; d.dwell = 1.5 + Math.random() * 3; d.timeline[4].t = Date.now(); }
       }
     } else if (d.status === 'working') {
       d.dwell -= dt;
-      g.position.y += Math.sin(t * 3) * 0.01;
+      g.position.y = d.to.y + Math.sin(t * 3) * 0.08;
       beam.material.opacity = 0.18 + Math.sin(t * 8) * 0.08;
       if (d.dwell <= 0) {
         beam.material.opacity = 0;
