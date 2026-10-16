@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CloudCity · Portafolio Microsoft Cloud en LEGO</title>
+  <meta name="description" content="Arquitectura Estratégica del Portafolio Microsoft Cloud y Modelo As-a-Service: ciudad LEGO 3D interactiva con la operación en tiempo real." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div id="stage"></div>
+
+    <!-- ====================== TOP BAR ====================== -->
+    <header class="topbar glass">
+      <div class="brand">
+        <div class="brand-brick"><i></i><i></i><i></i><i></i></div>
+        <div>
+          <div class="brand-name">CloudCity</div>
+          <div class="brand-sub">Microsoft Cloud · As-a-Service</div>
+        </div>
+      </div>
+
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" placeholder="Buscar servicios, contratos, camiones, agentes…" autocomplete="off" />
+        <kbd>/</kbd>
+        <div id="search-results" class="dropdown"></div>
+      </div>
+
+      <button class="tenant" id="tenant">
+        <span class="tenant-badge">MSFT</span>
+        <span class="tenant-info"><b>Contoso Corp · Tenant LATAM</b><small id="tenant-sub">MACC 58.8% · 20 distritos</small></span>
+        <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+
+      <div class="live"><span class="dot"></span>Live <b id="clock">--:--</b></div>
+
+      <div class="bell-wrap">
+        <button class="icon-btn" id="bell" title="Notificaciones">
+          <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="badge" id="bell-badge">0</span>
+        </button>
+        <div class="dropdown notif" id="notif"></div>
+      </div>
+
+      <div class="user">
+        <div class="avatar">PP</div>
+        <div><b>Pablo Palacios</b><small>Cloud Solution Architect</small></div>
+      </div>
+    </header>
+
+    <!-- ====================== KPIs ====================== -->
+    <section class="kpis">
+      <div class="kpi glass" data-kpi="acr">
+        <div class="kpi-ico" style="--c:#2FA05A">$</div>
+        <div><small>Azure Consumed Revenue</small><b id="k-acr">—</b><span class="up" id="k-acr-d">+0</span><em>mensual · ACR</em></div>
+      </div>
+      <div class="kpi glass" data-kpi="seats">
+        <div class="kpi-ico" style="--c:#F28C28">👤</div>
+        <div><small>Puestos activos (USL)</small><b id="k-seats">—</b><span class="up" id="k-seats-d">+0</span><em>M365 · D365 · Power</em></div>
+      </div>
+      <div class="kpi glass" data-kpi="macc">
+        <div class="kpi-ico" style="--c:#F2C200">◎</div>
+        <div><small>MACC consumido</small><b id="k-macc">—</b><span class="up" id="k-macc-d"></span><em>de $5M · 3 años</em></div>
+      </div>
+      <div class="kpi glass" data-kpi="sec">
+        <div class="kpi-ico" style="--c:#1E7BD8">🛡</div>
+        <div><small>Amenazas bloqueadas</small><b id="k-threats">—</b><span class="up" id="k-threats-d">+0</span><em>Defender · Sentinel hoy</em></div>
+      </div>
+      <div class="kpi glass" data-kpi="ai">
+        <div class="kpi-ico" style="--c:#9B5CD6">✦</div>
+        <div><small>Tareas Copilot</small><b id="k-copilot">—</b><span class="up" id="k-copilot-d">+0</span><em>agentes en vivo</em></div>
+      </div>
+    </section>
+
+    <!-- ====================== MODOS ====================== -->
+    <nav class="modes glass" id="modes">
+      <button data-mode="live" class="active"><span>🏙️</span>Ciudad en vivo</button>
+      <button data-mode="arch"><span>🧱</span>Arquitectura</button>
+      <button data-mode="resp"><span>⚖️</span>Responsabilidad</button>
+      <button data-mode="billing"><span>📊</span>Facturación</button>
+      <button data-mode="contracts"><span>📜</span>Contratos</button>
+      <button data-mode="optimize"><span>💰</span>Optimización</button>
+      <button data-mode="bundle"><span>📦</span>E3 → E5</button>
+      <button data-mode="team"><span>🤝</span>Equipo y partners</button>
+      <button data-mode="check"><span>✅</span>Checklist</button>
+    </nav>
+
+    <aside class="drawer glass" id="drawer">
+      <div class="drawer-head">
+        <div><small id="drawer-kicker"></small><h2 id="drawer-title"></h2></div>
+        <button class="icon-btn" id="drawer-close" title="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+    </aside>
+
+    <!-- ====================== CONTROLES ====================== -->
+    <div class="cam-tools glass">
+      <button id="cam-zin" title="Acercar">+</button>
+      <button id="cam-zout" title="Alejar">−</button>
+      <button id="cam-rl" title="Rotar izquierda">⟲</button>
+      <button id="cam-rr" title="Rotar derecha">⟳</button>
+      <button id="cam-home" title="Vista general">⌂</button>
+      <button id="cam-night" title="Día / noche">☾</button>
+    </div>
+
+    <!-- ====================== DETALLE ====================== -->
+    <aside class="detail glass" id="detail"></aside>
+
+    <!-- ====================== TRACKER ====================== -->
+    <section class="tracker glass" id="tracker"></section>
+
+    <!-- ====================== FLOTA ====================== -->
+    <section class="fleet glass">
+      <div class="fleet-head">
+        <div class="tabs" id="fleet-tabs">
+          <button data-tab="districts">Distritos <b id="t-districts"></b></button>
+          <button data-tab="trucks" class="active">Flota <b id="t-trucks"></b></button>
+          <button data-tab="agents">Agentes IA <b id="t-agents"></b></button>
+        </div>
+        <span class="fleet-site">Contoso · LATAM</span>
+      </div>
+      <div class="fleet-body">
+        <div class="fleet-list" id="fleet-list"></div>
+        <canvas id="minimap" width="300" height="200" title="Minimapa · clic para navegar"></canvas>
+      </div>
+    </section>
+
+    <div class="toasts" id="toasts"></div>
+
+    <div class="loader" id="loader">
+      <div class="loader-bricks"><i></i><i></i><i></i><i></i></div>
+      <p>Ensamblando la ciudad LEGO…</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
