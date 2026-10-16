@@ -205,3 +205,9 @@ Movimiento reducido omite la película; errores de carga ofrecen reintentar.
 La escena introductoria tiene recursos propios y los libera al terminar.
 `tests/intro.html` permite inspeccionar caminata, saludo, vuelo y liberación.
 La referencia Sparkles se adaptó a módulos nativos, sin React, npm ni bundler.
+
+El túnel usa ahora el shader del componente TunnelHero entregado por el usuario
+(96 capas, 128 puntos por anillo, ruta TunnelPath y velocidad originales). Solo
+los dos colores cambian a ITSE; resolución usa píxeles reales del framebuffer
+para corregir Retina. Comparte renderer con la escena inicial. Las partículas
+bajo la línea se concentran en 640×160 con máscara radial y destello blanco.

@@ -3,8 +3,8 @@ const overlay=document.getElementById('loader'),canvas=document.getElementById('
 const stage=document.getElementById('intro-stage'),caption=document.getElementById('intro-caption'),skip=document.getElementById('intro-skip');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
 let w=0,h=0,raf=0,film=null,started=0,ready=false,failed=false,closed=false,skipped=reduce.matches,loading=null;
-const stars=Array.from({length:150},(_,i)=>({x:((i*73)%151)/151,y:((i*47)%149)/149,phase:i*.7}));
-const colors=['#5900FF','#010ED0','#00A8A8','#79F6F5'];
+const stars=Array.from({length:1200},(_,i)=>({x:((i*73)%151)/151,y:((i*47)%149)/149,phase:i*.7}));
+
 function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);}
 resize();window.addEventListener('resize',resize);
 function finish(){if(closed||!ready)return;closed=true;cancelAnimationFrame(raf);film?.dispose();film=null;window.removeEventListener('resize',resize);reduce.removeEventListener('change',motionChange);overlay.classList.add('done');document.body.classList.remove('intro-active');document.querySelector('.topbar').inert=false;document.getElementById('stage').inert=false;setTimeout(()=>{overlay.remove();document.getElementById('executive-start')?.focus({preventScroll:true});},550);}
@@ -18,17 +18,25 @@ function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=st
  ctx.clearRect(0,0,w,h);
  const tunnel=!skipped&&t>=13,blackout=!skipped&&t>=11.8&&t<13;
  overlay.dataset.phase=failed?'error':skipped?'loading':tunnel?'tunnel':blackout?'blackout':t>=8.5?'flight':t>=5.8?'handshake':'arrival';
- stage.style.opacity=blackout||tunnel||skipped?'0':'1';
+ stage.style.opacity=blackout||skipped?'0':'1';
  document.getElementById('intro-brand').style.opacity=blackout||tunnel?'0':'1';
  if(!tunnel&&!blackout){
    const y=film?film.lineY():h*.64;
-   const glow=ctx.createLinearGradient(w*.1,0,w*.9,0);glow.addColorStop(0,'transparent');glow.addColorStop(.5,'#79F6F5');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.shadowColor='#5900FF';ctx.shadowBlur=16;ctx.fillRect(w*.1,y,w*.8,2);ctx.shadowBlur=0;
-   for(const s of stars){const a=.25+.55*(.5+.5*Math.sin((reduce.matches?0:now*.001)+s.phase));ctx.fillStyle=`rgba(205,231,255,${a})`;ctx.beginPath();ctx.arc(s.x*w,y+s.y*h*.3, .5+s.x,0,Math.PI*2);ctx.fill();}
- } else if(tunnel){
-   const elapsed=t-13,cx=w/2,cy=h/2;
-   for(let i=0;i<24;i++){const depth=((i/24+elapsed*.25)%1);const size=Math.pow(depth,2)*Math.max(w,h)*1.2;ctx.strokeStyle=colors[i%4];ctx.globalAlpha=depth*.75;ctx.lineWidth=1+depth*5;ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.sin(elapsed*.35)*.15);ctx.strokeRect(-size,-size*.62,size*2,size*1.24);ctx.restore();}ctx.globalAlpha=1;
- }
- if(!skipped&&!failed){film?.render(t);if(t>9&&!loading)loadCity();if(t>=13)say('Conectando posibilidades');else if(t>=8.5)say('Tus datos. Un mundo de posibilidades.');else if(t>=5.8)say('La tecnología empieza con una conexión.');if(t>=17){if(ready)finish();else say('La ciudad está terminando de cargar…');}}
+   const width=Math.min(640,w*.9),height=160,left=(w-width)/2;
+   const glow=ctx.createLinearGradient(left,0,left+width,0);glow.addColorStop(0,'transparent');glow.addColorStop(.5,'#818CF8');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.shadowColor='#6366F1';ctx.shadowBlur=8;ctx.fillRect(left,y,width,2);ctx.shadowBlur=0;
+   const core=ctx.createLinearGradient(w/2-width*.17,0,w/2+width*.17,0);core.addColorStop(0,'transparent');core.addColorStop(.5,'#38BDF8');core.addColorStop(1,'transparent');ctx.fillStyle=core;ctx.shadowColor='#38BDF8';ctx.shadowBlur=5;ctx.fillRect(w/2-width*.17,y,width*.34,3);ctx.shadowBlur=0;
+   const seconds=reduce.matches?0:now*.001;
+   for(const s of stars){
+     const px=((s.x+Math.sin(seconds*.15+s.phase)*.012+1)%1)*width-width/2;
+     const py=((s.y+seconds*(.003+s.x*.004))%1)*height;
+     const radius=Math.hypot(px/(width*.55),py/200);
+     const fade=Math.max(0,Math.min(1,(1-radius)/.8));
+     const a=(.1+.9*(.5+.5*Math.sin(seconds*4+s.phase)))*fade;
+     ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.beginPath();ctx.arc(w/2+px,y+py,.4+s.x*.6,0,Math.PI*2);ctx.fill();
+   }
+ } else if(tunnel){film?.renderTunnel(t-13);}
+
+ if(!skipped&&!failed){if(!tunnel)film?.render(t);if(t>9&&!loading)loadCity();if(t>=13)say('Conectando posibilidades');else if(t>=8.5)say('Tus datos. Un mundo de posibilidades.');else if(t>=5.8)say('La tecnología empieza con una conexión.');if(t>=17){if(ready)finish();else say('La ciudad está terminando de cargar…');}}
 }
 raf=requestAnimationFrame(frame);
 if(skipped){skip.textContent='Abriendo ciudad…';skip.disabled=true;loadCity();}

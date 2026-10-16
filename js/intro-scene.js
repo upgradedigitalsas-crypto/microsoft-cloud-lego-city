@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createIntroTunnel } from './intro-tunnel.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // Independent geometry/material ownership: disposing this short film never touches the city.
@@ -11,6 +12,7 @@ export function createIntroScene(container) {
   scene.add(new THREE.HemisphereLight('#EAF6FF','#3D086D',2.4));
   const key=new THREE.DirectionalLight('#FFFFFF',3.2);key.position.set(-5,9,10);scene.add(key);
   const rim=new THREE.DirectionalLight('#00E7E0',3);rim.position.set(6,4,-5);scene.add(rim);
+  const tunnel=createIntroTunnel(renderer);
   const materials=new Map(),geometries=new Map();
   const material=color=>{if(!materials.has(color))materials.set(color,new THREE.MeshStandardMaterial({color,roughness:.27}));return materials.get(color);};
   function box(parent,w,h,d,x,y,z,color){const k=[w,h,d].join('|');if(!geometries.has(k))geometries.set(k,new RoundedBoxGeometry(w,h,d,2,Math.min(.045,w/5,h/5,d/5)));const m=new THREE.Mesh(geometries.get(k),material(color));m.position.set(x,y,z);parent.add(m);return m;}
@@ -39,7 +41,7 @@ export function createIntroScene(container) {
     return {root,legs,arms};
   }
   const visitor=figure(false),host=figure(true);
-  const line=new THREE.Mesh(new THREE.BoxGeometry(25,.025,.06),new THREE.MeshBasicMaterial({color:'#7DDFFF',toneMapped:false}));line.position.y=-.03;scene.add(line);
+  const line=new THREE.Mesh(new THREE.BoxGeometry(25,.025,.06),new THREE.MeshBasicMaterial({color:'#7DDFFF',toneMapped:false}));line.position.y=-.03;line.visible=false;scene.add(line);
   const plane=new THREE.Group();scene.add(plane);
   box(plane,1.3,.7,5,0,0,0,'#F1F5FF');box(plane,.95,.6,1.1,0,.1,2.8,'#67D9F5');
   box(plane,7,.22,1.5,0,-.1,-.1,'#F1F5FF');box(plane,3,.22,1,0,.2,-2,'#5900F5');box(plane,.2,1.3,1,0,.7,-2,'#5900F5');
@@ -51,9 +53,9 @@ export function createIntroScene(container) {
   const observer=new ResizeObserver(resize);observer.observe(container);resize();
   function render(t){
     const walk=ease(t/4),arrival=ease((t-3)/2.8),shake=t>=6&&t<8.4;
-    visitor.root.position.set(THREE.MathUtils.lerp(-8,-1.13,walk),t<4?Math.abs(Math.sin(t*8))*.065:0,0);
+    visitor.root.position.set(THREE.MathUtils.lerp(-5,-1.13,walk),t<4?Math.abs(Math.sin(t*8))*.065:0,0);
     host.root.visible=t>=3;
-    host.root.position.set(THREE.MathUtils.lerp(8,1.13,arrival),(t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0)-3.2*(1-ease((t-3)/.8)),0);
+    host.root.position.set(THREE.MathUtils.lerp(5,1.13,arrival),(t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0)-3.2*(1-ease((t-3)/.8)),0);
     visitor.root.rotation.y=t<4?.5:shake?.28:0;host.root.rotation.y=t<5.8?-.5:shake?-.28:0;
     for(const [fig,moving] of [[visitor,t<4],[host,t>3&&t<5.8]]){
       fig.legs.forEach((leg,i)=>leg.rotation.x=moving?Math.sin(t*8+i*Math.PI)*.55:0);
@@ -65,7 +67,7 @@ export function createIntroScene(container) {
     if(t>=8.5){const f=ease((t-8.5)/3.7);plane.visible=true;plane.position.set(0,-8+f*11,8-f*55);plane.rotation.x=-.25+f*.25;}else plane.visible=false;
     renderer.render(scene,camera);
   }
-  function dispose(){observer.disconnect();const gs=new Set(),ms=new Set(),ts=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});ms.forEach(m=>{if(m.map)ts.add(m.map);m.dispose();});gs.forEach(g=>g.dispose());ts.add(logo);ts.forEach(t=>t.dispose());renderer.dispose();renderer.domElement.remove();}
+  function dispose(){tunnel.dispose();observer.disconnect();const gs=new Set(),ms=new Set(),ts=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});ms.forEach(m=>{if(m.map)ts.add(m.map);m.dispose();});gs.forEach(g=>g.dispose());ts.add(logo);ts.forEach(t=>t.dispose());renderer.dispose();renderer.domElement.remove();}
   const anchor=new THREE.Vector3();
-  return {render,dispose,lineY:()=>{anchor.set(0,0,0).project(camera);return (-anchor.y*.5+.5)*container.clientHeight;}};
+  return {render,renderTunnel:tunnel.render,dispose,lineY:()=>{anchor.set(0,0,0).project(camera);return (-anchor.y*.5+.5)*container.clientHeight;}};
 }
