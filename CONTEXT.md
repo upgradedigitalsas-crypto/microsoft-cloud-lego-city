@@ -1,0 +1,136 @@
+# CONTEXTO DEL PROYECTO: CLOUDCITY (MICROSOFT CLOUD LEGO DIGITAL TWIN)
+
+> **Documento de Contexto para Agentes de IA (Codex / OpenAI / GitHub Copilot)**  
+> **Proyecto:** `microsoft-cloud-lego-city`  
+> **Repositorio:** [https://github.com/upgradedigitalsas-crypto/microsoft-cloud-lego-city](https://github.com/upgradedigitalsas-crypto/microsoft-cloud-lego-city)  
+> **Despliegue en Vivo:** [https://upgradedigitalsas-crypto.github.io/microsoft-cloud-lego-city/](https://upgradedigitalsas-crypto.github.io/microsoft-cloud-lego-city/)  
+> **Fecha de Actualización:** 2026-10-15  
+> **Autor / Propietario:** Pablo Palacios (`upgradedigitalsas@gmail.com`)
+
+---
+
+## 1. Visión y Propósito del Proyecto
+
+**CloudCity** es una aplicación web interactiva que representa la **Arquitectura Estratégica del Portafolio Microsoft Cloud y su Modelo As-a-Service** como un **gemelo digital (Digital Twin) en formato de ciudad LEGO 3D isométrica**, con simulación logística en tiempo real inspirada en dashboards de centros de distribución de alta gama (estilo *WareTrack*).
+
+Transforma conceptos técnicos y comerciales complejos (IaaS, PaaS, SaaS, EA, MCA-E, CSP, MACC, True-up, Bundling E3/E5) en una experiencia visual, pedagógica y comercialmente persuasiva.
+
+---
+
+## 2. Stack Tecnológico y Principios de Diseño
+
+* **Core 3D:** Three.js (r160) importado vía CDN mediante `<script type="importmap">` en [index.html](file:///Users/pablocesarpalaciosastaiza/Downloads/3D%20custom%20porfolio%20microsoft/index.html).
+* **Renderizado:** WebGL con sombras suaves (`PCFSoftShadowMap`), mapeo tonal `ACESFilmicToneMapping` y materiales estándar con acabado de plástico ABS.
+* **Sin Bundlers Pesados:** No requiere `npm build` ni Vite/Webpack; corre de forma nativa con ES Modules en cualquier navegador y en **GitHub Pages**.
+* **Estilo Visual:** UI flotante estilo *Glassmorphism* sobre una baseplate LEGO con studs instanciados en 3D para máximo rendimiento a 60 FPS.
+
+---
+
+## 3. Mapa de Archivos y Responsabilidades
+
+```
+.
+├── index.html          # Shell HTML: Topbar, KPIs, Drawer lateral, Controles de cámara,
+│                       # Detalle flotante, Tracker de envíos, Lista de flota y Minimapa.
+├── css/
+│   └── styles.css      # Sistema de diseño WareTrack (glassmorphism, variables CSS,
+│                       # tipografía Inter, responsive, animaciones y modo noche).
+├── js/
+│   ├── data.js         # Modelo de datos central: Distritos, flujos logísticos, modelos de
+│   │                   # facturación, matriz de responsabilidad, bundling E3/E5 y checklist.
+│   ├── lego.js         # Primitivas geométricas LEGO: Ladrillos redondeados, studs instanciados
+│   │                   # (StudBatch), camiones, coches patrulla, drones, montacargas y brackets 3D.
+│   ├── city.js         # Generador de la ciudad: Baseplate, sistema vial cuadriculado, aceras,
+│   │                   # farolas, vegetación y los 17 edificios temáticos paramétricos.
+│   ├── sim.js          # Motor de simulación en tiempo real: Máquina de estados vehicular,
+│   │                   # rutas cinemáticas, rondas Zero Trust, drones Copilot, colisiones y KPIs.
+│   └── main.js         # Orquestador: Escena Three.js, OrbitControls, raycasting, proyecciones
+│                       # de etiquetas 2D/3D, minimapa en canvas, drawer temático y buscador.
+├── README.md           # Documentación pública para GitHub.
+└── CONTEXT.md          # Este archivo (guía de contexto para Codex / OpenAI).
+```
+
+---
+
+## 4. Mapeo del Dominio de Negocio (Microsoft Cloud Architecture)
+
+### 4.1. Los 5 Pilares Representados como Distritos LEGO
+1. **Capa Transversal de IA (Ladrillos Violeta `#9B5CD6`):**
+   * `copilot`: Rascacielos central con helipuertos y anillos giroscópicos.
+   * `copilotStudio`: Laboratorio de orquestación de agentes con cúpula translúcida.
+   * `secCopilot`: Centro de respuesta rápida y triage SOC con antena parabólica.
+2. **Aplicaciones y Productividad (Ladrillos Naranja `#F28C28`):**
+   * `m365`: Torres gemelas con bloques volumétricos de Teams, Word, Excel, PowerPoint y Outlook.
+   * `dynamics`: Fábrica industrial para ERP (Finance, Supply Chain) y CRM.
+   * `power`: Central de energía renovable con aerogeneradores y base Dataverse.
+3. **Infraestructura y Plataforma de Datos (Ladrillos Azules `#1E7BD8`):**
+   * `compute`: Datacenter Azure IaaS con racks de servidores con LEDs y ventilación.
+   * `azuredata`: Campus Azure PaaS & AI Foundry con núcleo cuántico, Azure SQL, Cosmos DB y AKS.
+   * `fabric`: Lakehouse asentado sobre el lago OneLake con capas Delta Parquet.
+4. **Seguridad, Identidad y Gobierno (Ladrillos Verdes `#2FA05A`):**
+   * `entra`: Gran puerta de la ciudad con barrera móvil y escáner de acceso condicional.
+   * `defender`: Cuartel general con escudo gigante y patrullas con sirenas en rondas continuas.
+   * `sentinel`: Radar SIEM/SOAR giratorio con barrido de radiofrecuencia.
+   * `purview`: Archivo neoclásico con etiquetas flotantes de sensibilidad DLP.
+5. **Marcos Contractuales y Partners (Amarillo `#F2C200` y Rojo `#E0453A`):**
+   * `ea`: Banco con ciclo trianual y simulador de True-Up.
+   * `mcae`: Torre corporativa moderna de contratación digital.
+   * `csp`: Comercio con toldos para el canal de partners y NCE.
+   * `macc`: Bóveda con lingotes de oro que se acumulan según el gasto y Marketplace 1:1.
+   * `hq`, `lsp`, `gsi`: Rascacielos de ventas (comisionado por ACR), almacén de licencias y obra con grúa de migración.
+
+### 4.2. Flujos Logísticos y Máquina de Estados
+Cada camión o agente representa un flujo de valor de la nube:
+* `LIC`: Licencias USL desde EA/MCA-E/CSP hacia M365/Dynamics.
+* `DAT`: Ingesta masiva de datos hacia OneLake.
+* `MIG`: Migraciones de máquinas virtuales operadas por GSIs hacia Azure IaaS.
+* `ACR`: Azure Consumed Revenue liquidado hacia la bóveda MACC.
+* `IDN`, `TLM`, `GOV`: Tokens de identidad, telemetría de amenazas y etiquetas DLP.
+* **Ciclo:** `loading` (muelle) ➔ `transit` (calle) ➔ `docking` (bahía) ➔ `unloading` ➔ `reposition`.
+
+---
+
+## 5. Instrucciones para Codex (Backlog de Tareas Pendientes)
+
+Si estás conectándote a este repositorio para refinar, pulir o extender el proyecto, aquí están las mejoras prioritarias:
+
+### Tarea 1: Efectos de Sonido y Audio Feedback (Opcional / Toggle)
+* Implementar efectos sonoros sutiles con Web Audio API sintetizada (sin cargar archivos de audio externos pesados):
+  * Clic tipo ensamble de pieza LEGO al seleccionar un edificio o camión.
+  * Zumbido suave de dron para los agentes Copilot.
+  * Sirena suave o pitido electrónico al interceptar una amenaza en Defender.
+
+### Tarea 2: Filtros de Vista y Rayos X
+* Añadir un selector de filtros en la barra superior para aislar capas:
+  * *Solo Seguridad*: Atenúa el resto de la ciudad y resalta Entra, Defender, Sentinel y Purview con las patrullas.
+  * *Solo Datos*: Resalta Fabric, OneLake, Azure SQL, Cosmos DB y los camiones de telemetría `DAT`.
+  * *Solo Licenciamiento*: Resalta los bancos EA, MCA-E, CSP y los camiones `LIC`.
+
+### Tarea 3: Exportador de Propuesta Comercial (PDF / Summary)
+* En el modo **Optimización** o **Bundling E3 vs E5**, añadir un botón *"Exportar Resumen Ejecutivo"*:
+  * Genera una tarjeta o vista para imprimir con los ahorros calculados de MACC, Reservas y Beneficio Híbrido personalizados con el nombre del cliente ingresado en la búsqueda.
+
+### Tarea 4: Soporte Táctil Mejorado para Móviles / Tablets
+* Ajustar los gestos táctiles (pinch to zoom, rotación con 2 dedos) para que la experiencia en iPad / tablets sea 100% fluida en presentaciones comerciales con clientes.
+
+---
+
+## 6. Comandos para Ejecutar y Publicar
+
+### Ejecución Local:
+```bash
+# Servidor local inmediato (cualquier opción funciona)
+python3 -m http.server 8080
+# o si usas Node:
+npx serve .
+```
+Abre en el navegador: `http://localhost:8080`
+
+### Publicación y Despliegue en GitHub:
+```bash
+git add .
+git commit -m "feat: tu mejora aqui"
+git push origin main
+```
+*GitHub Pages compilará automáticamente en ~30 segundos en la URL oficial:*  
+`https://upgradedigitalsas-crypto.github.io/microsoft-cloud-lego-city/`
