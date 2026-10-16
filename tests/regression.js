@@ -1,3 +1,4 @@
+import { buildNightLighting } from '../js/night-lighting.js';
 import { buildSecurityLife } from '../js/security-life.js';
 import * as THREE from 'three';
 import { buildCity } from '../js/city.js';
@@ -115,6 +116,12 @@ try {
   assert(world.airport.cycles===9 && world.security.episodes.every(e=>e.cycles>=29), 'Avión y motos completan ciclos repetidos');
   assert(world.security.episodes.every(e=>Number.isFinite(e.guardian.position.x)) && Number.isFinite(world.airport.plane.position.y), 'Posiciones finitas de aviones y defensores');
   assert(isIslandLand(240,80)&&isIslandLand(190,80), 'Aeropuerto circular y carretera apoyados en tierra');
+  const lighting=buildNightLighting(scene,world,sim),beforeLightingToggle=episodeNodeCount();
+  assert(lighting.roots.every(o=>!o.visible),'Luces nocturnas apagadas al iniciar de día');
+  lighting.set(true);
+  assert(lighting.roots.every(o=>o.visible),'Vehículos, torres, drones, aviones y pista encienden sus luces');
+  for(let n=0;n<100;n++){lighting.set(true);world.anims.forEach(fn=>fn(n*.2,.2));lighting.set(false);}
+  assert(lighting.roots.every(o=>!o.visible)&&episodeNodeCount()===beforeLightingToggle,'Cien cambios día/noche apagan luces y no crean objetos');
   const originalPrint = window.print;
   window.print = () => {};
   printProposal({ client: '<Cliente & prueba>', title: 'Test', rows: [['Ahorro', '$2.250']] });

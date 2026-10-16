@@ -8,6 +8,7 @@ import {
   BUNDLE, CHECKLIST, ROLES, PLATE, X_ROADS, Z_ROADS,
 } from './data.js';
 import { brackets, disposeGeometryCaches } from './lego.js';
+import { buildNightLighting } from './night-lighting.js';
 import { buildSecurityLife } from './security-life.js';
 import { buildCity } from './city.js';
 import { Simulation, STATUS } from './sim.js';
@@ -85,6 +86,7 @@ scene.add(ambientLight);
 const world = buildCity(scene);
 const sim = new Simulation(scene, world);
 buildSecurityLife(scene, world, sim.customers);
+const nightLighting=buildNightLighting(scene,world,sim);
 
 // Brackets de selección 3D
 const selectBox = brackets('#2563EB');
@@ -1222,6 +1224,8 @@ function rotateCameraAroundTarget(angle) {
 
 function toggleDayNight() {
   state.isNight = !state.isNight;
+  nightLighting.set(state.isNight);
+  document.getElementById('cam-night').setAttribute('aria-pressed',String(state.isNight));
   document.body.classList.toggle('night', state.isNight);
   document.getElementById('cam-night').textContent = state.isNight ? '☼' : '☾';
 
@@ -1230,7 +1234,7 @@ function toggleDayNight() {
     scene.fog.color.set('#0E1626');
     dirLight.color.set('#6366f1');
     dirLight.intensity = 0.45;
-    hemiLight.color.set('#1e293b');
+    hemiLight.color.set('#61799F');
     hemiLight.groundColor.set('#0f172a');
     world.lampMaterial.emissiveIntensity = 2.0;
   } else {

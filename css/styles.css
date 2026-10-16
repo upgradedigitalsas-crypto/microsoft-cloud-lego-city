@@ -473,3 +473,14 @@ body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tou
 
 .label-leader { position:absolute;left:0;top:0;height:1px;transform-origin:0 50%;background:rgba(232,249,255,.85);pointer-events:none;z-index:-1; }
 body.hide-labels .label-leader { display:none!important; }
+
+/* ITSE glass header, with solid high-contrast controls over the translucent shell. */
+.topbar.glass {
+  background:rgba(247,251,255,.66);
+  border:1px solid rgba(255,255,255,.8);
+  backdrop-filter:blur(18px) saturate(145%);
+  -webkit-backdrop-filter:blur(18px) saturate(145%);
+  box-shadow:0 8px 28px rgba(15,35,75,.10),inset 0 1px 0 rgba(255,255,255,.7);
+}
+body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(255,255,255,.6); }
+@supports not (backdrop-filter:blur(18px)) { .topbar.glass { background:rgba(247,251,255,.93); } }

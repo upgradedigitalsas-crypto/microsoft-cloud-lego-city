@@ -187,3 +187,10 @@ el toolkit Enterprise: índigo/cian, Inter/Hanken Grotesk y controles compactos.
 Las etiquetas flotantes usan glass con iconos Microsoft guardados en assets/products.
 SOURCES.md registra sus fuentes; contratos/partners usan símbolos, no logos ficticios.
 ResizeObserver conserva tamaños para evitar recortes y solapamientos de etiquetas.
+
+## 10. Iluminación nocturna
+`night-lighting.js` crea una vez luces instanciadas, ventanas retroiluminadas,
+faros y pilotos, luces de navegación de drones/aviones, balizas y marcas de pista.
+El botón día/noche activa/desactiva todo; las balizas parpadean reutilizando objetos.
+Se usan materiales luminosos y manchas suaves sin añadir luces con sombras por actor.
+La barra superior también usa glass con respaldo opaco para navegadores sin blur.
