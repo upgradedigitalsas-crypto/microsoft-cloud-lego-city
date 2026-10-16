@@ -5,6 +5,7 @@ import { PLATE, X_ROADS, Z_ROADS, DISTRICTS } from './data.js';
 export const ISLAND_STEP = 4;
 // Preserve every service lot inside an asymmetric, block-stepped coastline.
 export function isIslandLand(x, z) {
+  if (Math.hypot(x - 240, z - 80) <= 48 || (x >= 150 && x <= 240 && Math.abs(z - 80) <= 12)) return true;
   if (DISTRICTS.some(d => Math.abs(x-d.pos[0])<=20 && z>=d.pos[1]-16 && z<=d.pos[1]+27)) return true;
   if (Math.hypot((x + 76) / 28, (z - 128) / 19) < 1) return true;
   if (x >= PLATE.minX && x <= PLATE.maxX && z >= PLATE.minZ && z <= PLATE.maxZ) return true;
@@ -20,7 +21,7 @@ export function buildIslandTerrain(scene, studs, world) {
     groups.get(color).push([x, y, z, h]);
   };
   const neighbors = [[4, 0], [-4, 0], [0, 4], [0, -4]];
-  for (let x = -192; x <= 192; x += ISLAND_STEP) {
+  for (let x = -192; x <= 292; x += ISLAND_STEP) {
     for (let z = -156; z <= 156; z += ISLAND_STEP) {
       const land = isIslandLand(x, z);
       const edge = land && neighbors.some(([dx, dz]) => !isIslandLand(x + dx, z + dz));
@@ -48,7 +49,7 @@ export function buildIslandTerrain(scene, studs, world) {
   for (const [factor, rawTop, rawBottom, color] of strata) {
     const top = rawTop === -6 ? -6 : rawTop * 1.7, bottom = rawBottom * 1.7;
     const cells = [];
-    for (let x = -192; x <= 192; x += 8) for (let z = -156; z <= 156; z += 8) {
+    for (let x = -192; x <= 292; x += 8) for (let z = -156; z <= 156; z += 8) {
       if (isIslandLand(x / factor, z / factor)) cells.push([x, z]);
     }
     const rock = new THREE.InstancedMesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.95 }), cells.length);

@@ -149,7 +149,22 @@ export function signTexture(text, { bg = '#ffffff', fg = '#1b2433', w = 512, h =
     x = w / 2 + h * 0.3;
   }
   g.fillStyle = fg; g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(text, x, h / 2 + 4);
+  // Fit actual glyph bounds, including accents and italic overhang, inside padding.
+  const padding = Math.max(8, h * 0.12);
+  const left = logo === 'ms' ? h * 0.82 : padding;
+  const available = w - left - padding;
+  let size = Number(font.match(/([\d.]+)px/)?.[1] || 64);
+  let metrics;
+  do {
+    g.font = font.replace(/[\d.]+px/, `${size}px`);
+    metrics = g.measureText(text);
+    if (Math.max(metrics.width, metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight) <= available &&
+        metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent <= h - 2 * padding) break;
+    size -= 1;
+  } while (size > 1);
+  x = left + available / 2;
+  g.fillText(text, x, h / 2 + (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2);
+
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;

@@ -1,3 +1,4 @@
+import { buildSecurityLife } from '../js/security-life.js';
 import * as THREE from 'three';
 import { buildCity } from '../js/city.js';
 import { BOULEVARD, streetRoute, inLake } from '../js/urban.js';
@@ -27,6 +28,7 @@ try {
   const scene = new THREE.Scene();
   const world = buildCity(scene);
   const sim = new Simulation(scene, world);
+  buildSecurityLife(scene,world,sim.customers);
   assert((PLATE.maxX - PLATE.minX) * (PLATE.maxZ - PLATE.minZ) > 2 * 156 * 106, 'Mundo ampliado a más del doble de superficie');
   assert(sim.customers.people.length === 80 && sim.customers.people.filter(p => !p.host).length === 60, '60 clientes y 20 especialistas con población fija');
   assert(DISTRICTS.every(d => SERVICE_ROLES[d.id] && world.buildings.get(d.id).entrance && sim.customers.visitors(d.id).length === 3), 'Cada isla tiene un papel de Microsoft Cloud, acceso y tres clientes');
@@ -106,6 +108,13 @@ try {
   for(let i=0;i<260;i++) world.anims.forEach(fn=>fn(i*0.05,0.05));
   assert(!world.beach.running && beachUpdates===6, 'Pedido de playa recorre cuatro etapas, evita duplicados y termina');
   world.beach.subscribe(()=>{});
+  const episodeNodeCount=()=>{let count=0;scene.traverse(()=>count++);return count;};
+  const beforeEpisodes=episodeNodeCount();
+  for(let frame=0;frame<9600;frame++) world.anims.forEach(fn=>fn(frame*.1,.1));
+  assert(episodeNodeCount()===beforeEpisodes, 'Aeropuerto y protección reutilizan actores durante diez ciclos de vuelo');
+  assert(world.airport.cycles===9 && world.security.episodes.every(e=>e.cycles>=29), 'Avión y motos completan ciclos repetidos');
+  assert(world.security.episodes.every(e=>Number.isFinite(e.guardian.position.x)) && Number.isFinite(world.airport.plane.position.y), 'Posiciones finitas de aviones y defensores');
+  assert(isIslandLand(240,80)&&isIslandLand(190,80), 'Aeropuerto circular y carretera apoyados en tierra');
   const originalPrint = window.print;
   window.print = () => {};
   printProposal({ client: '<Cliente & prueba>', title: 'Test', rows: [['Ahorro', '$2.250']] });

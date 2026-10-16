@@ -173,3 +173,17 @@ Power Platform es un taller de automatización, no una central eléctrica.
 La playa LEGO tiene un kiosco y robot; `beach.js` simula cuatro etapas de pedido
 sin conexiones externas. Buscador, categorías y botón de explorador ocultos.
 Mantener ES modules nativos y todo el diseño en LEGO.
+
+## 9. Aeropuerto y protección ilustrativa
+
+`airport.js` añade una península circular al este (240,80), carretera desde HQ,
+terminal, torre y un avión reutilizado en un ciclo de 96 segundos. Representa
+entrada/salida de datos, sin tráfico real. `security-life.js` reutiliza tres motos
+y tres drones Defender/Firewall con escudos: aproximación, bloqueo y retirada.
+Los botones de cámara permiten ver ambas escenas y su explicación.
+Los letreros ajustan fuente y margen según métricas de glifos. La barra ITSE usa
+el toolkit Enterprise: índigo/cian, Inter/Hanken Grotesk y controles compactos.
+
+Las etiquetas flotantes usan glass con iconos Microsoft guardados en assets/products.
+SOURCES.md registra sus fuentes; contratos/partners usan símbolos, no logos ficticios.
+ResizeObserver conserva tamaños para evitar recortes y solapamientos de etiquetas.

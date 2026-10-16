@@ -8,6 +8,7 @@ import {
   BUNDLE, CHECKLIST, ROLES, PLATE, X_ROADS, Z_ROADS,
 } from './data.js';
 import { brackets, disposeGeometryCaches } from './lego.js';
+import { buildSecurityLife } from './security-life.js';
 import { buildCity } from './city.js';
 import { Simulation, STATUS } from './sim.js';
 import { BEACH_STEPS } from './beach.js';
@@ -30,8 +31,8 @@ scene.fog = new THREE.FogExp2('#DCEFFF', 0.0011);
 
 const aspect = container.clientWidth / container.clientHeight;
 const camera = new THREE.PerspectiveCamera(38, aspect, 1, 1000);
-const DEFAULT_CAM_POS = new THREE.Vector3(235, 150, 260);
-const DEFAULT_TARGET = new THREE.Vector3(0, -35, 0);
+const DEFAULT_CAM_POS = new THREE.Vector3(315, 205, 350);
+const DEFAULT_TARGET = new THREE.Vector3(40, -25, 20);
 camera.position.copy(DEFAULT_CAM_POS);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -83,6 +84,7 @@ scene.add(ambientLight);
 // ---------------------------------------------------------------------------
 const world = buildCity(scene);
 const sim = new Simulation(scene, world);
+buildSecurityLife(scene, world, sim.customers);
 
 // Brackets de selección 3D
 const selectBox = brackets('#2563EB');
@@ -112,18 +114,35 @@ labelsContainer.style.cssText = 'position:absolute;inset:0;pointer-events:none;o
 container.appendChild(labelsContainer);
 
 const districtLabels = new Map();
+const productIcons = {copilotStudio:'copilotStudio',copilot:'copilot',secCopilot:'secCopilot',m365:'m365',dynamics:'dynamics',power:'power',compute:'azure',azuredata:'azure',fabric:'fabric',entra:'entra',defender:'defender',sentinel:'sentinel',purview:'purview'};
+const roleIcons = {csp:'▦',ea:'▤',mcae:'▤',macc:'◈',hq:'▥',lsp:'▣',gsi:'⚙'};
 DISTRICTS.forEach(d => {
-  const el = document.createElement('div');
+  const el = document.createElement('button');
+  el.type = 'button';
   el.className = 'blabel';
+  el.setAttribute('aria-label', d.name);
+  el.title = d.name;
   const pillar = PILLARS[d.pillar];
-  el.innerHTML = `<i style="background:${pillar.color}"></i><span>${d.short}</span><em id="badge-${d.id}"></em>`;
+  const icon=productIcons[d.id];
+  el.innerHTML = `${icon ? `<img class="product-icon" src="assets/products/${icon}.svg" alt="" width="24" height="24" />` : `<i class="role-icon" aria-hidden="true" style="color:${pillar.color}">${roleIcons[d.id] || '◇'}</i>`}<span>${d.short}</span><em id="badge-${d.id}"></em>`;
   el.addEventListener('click', (e) => {
     e.stopPropagation();
     selectEntity('district', d.id);
   });
-  labelsContainer.appendChild(el);
-  districtLabels.set(d.id, { el, pos: new THREE.Vector3(d.pos[0], world.buildings.get(d.id).height + 3, d.pos[1]) });
+  const leader=document.createElement('div');leader.className='label-leader';
+  labelsContainer.appendChild(leader);labelsContainer.appendChild(el);
+  districtLabels.set(d.id, { el, leader, width: 150, height: 36, pos: new THREE.Vector3(d.pos[0], world.buildings.get(d.id).height + 3, d.pos[1]) });
 });
+
+// Cache label dimensions on font/viewport changes instead of measuring every frame.
+const labelObserver = new ResizeObserver(entries => {
+  for (const entry of entries) {
+    const label=[...districtLabels.values()].find(item=>item.el===entry.target);
+    if(label && entry.target.offsetWidth>0){label.width=entry.target.offsetWidth;label.height=entry.target.offsetHeight;}
+  }
+});
+districtLabels.forEach(({el})=>labelObserver.observe(el));
+window.addEventListener('pagehide',()=>labelObserver.disconnect(),{once:true});
 
 // Etiqueta flotante del vehículo seleccionado
 const vehicleTag = document.createElement('div');
@@ -1311,17 +1330,26 @@ function animate() {
     }
   }
 
-  // Proyectar etiquetas de distritos
-  districtLabels.forEach(({ el, pos }) => {
+  // Keep complete labels inside the viewport and resolve overlaps near their anchors.
+  const occupied=[];
+  const viewportWidth=container.clientWidth,viewportHeight=container.clientHeight;
+  const topMargin=viewportWidth<640?148:104;
+  districtLabels.forEach(({ el, leader, pos, width, height }) => {
     tempV.copy(pos).project(camera);
-    if (tempV.z > -1 && tempV.z < 1) {
-      const x = (tempV.x * 0.5 + 0.5) * container.clientWidth;
-      const y = (-(tempV.y * 0.5) + 0.5) * container.clientHeight;
-      el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-      el.style.display = 'flex';
-    } else {
-      el.style.display = 'none';
+    if(tempV.z<=-1||tempV.z>=1||Math.abs(tempV.x)>1.1||Math.abs(tempV.y)>1.1){el.style.display='none';leader.style.display='none';return;}
+    const anchorX=(tempV.x*.5+.5)*viewportWidth,anchorY=(-tempV.y*.5+.5)*viewportHeight;
+    let placed=null;
+    for(const dy of [0,-40,40,-80,80,-120,120]) {
+      for(const dx of [0,-85,85]) {
+        const x=Math.max(width/2+8,Math.min(viewportWidth-width/2-52,anchorX+dx));
+        const y=Math.max(topMargin+height/2,Math.min(viewportHeight-height/2-12,anchorY+dy));
+        const box={left:x-width/2-3,right:x+width/2+3,top:y-height/2-3,bottom:y+height/2+3};
+        if(!occupied.some(b=>box.left<b.right&&box.right>b.left&&box.top<b.bottom&&box.bottom>b.top)){placed={x,y,box};break;}
+      }
+      if(placed)break;
     }
+    el.style.display=placed?'flex':'none';leader.style.display=placed?'block':'none';
+    if(placed){occupied.push(placed.box);const dx=placed.x-anchorX,dy=placed.y-anchorY;leader.style.width=`${Math.hypot(dx,dy)}px`;leader.style.transform=`translate(${anchorX}px,${anchorY}px) rotate(${Math.atan2(dy,dx)}rad)`;el.style.transform=`translate(-50%, -50%) translate(${placed.x}px, ${placed.y}px)`;}
   });
 
   // Tickers periódicos
@@ -1424,3 +1452,15 @@ function openBeach() {
   panel.querySelector('#beach-close').onclick=()=>{world.beach.subscribe(()=>{});panel.hidden=true;document.body.classList.remove('executive-tour');};
 }
 document.getElementById('beach-start').onclick=openBeach;
+
+function openLivingScene(kind) {
+  selectEntity(null,null);
+  const airport=kind==='airport',panel=document.getElementById('executive-panel');
+  panel.hidden=false;document.body.classList.add('executive-tour');
+  const target=airport?new THREE.Vector3(240,2,80):world.security.episodes[0].client.group.position.clone();
+  flyCameraTo(target.clone().add(airport?new THREE.Vector3(70,65,85):new THREE.Vector3(26,25,34)),target,1);
+  panel.innerHTML=`<div class="exec-heading"><span>${airport?'CLOUD GATEWAY':'PROTECCIÓN MICROSOFT'}</span><button aria-label="Cerrar explicación">✕</button></div><h2>${airport?'Datos que llegan y salen':'Clientes protegidos'}</h2><p>${airport?'Los aviones representan el intercambio de datos entre los sistemas de los clientes y Microsoft Cloud. Aterrizan, descargan en la terminal y despegan con resultados.':'Las motos pirata representan amenazas. Los drones Defender ilustran detección y respuesta; el dron Firewall representa el filtrado del tráfico de red.'}</p><p>${airport?'La carretera conecta el aeropuerto con la ciudad: aplicaciones, infraestructura y plataformas de datos trabajan como un ecosistema conectado.':'Los muros y escudos muestran la contención del ataque. Entra controla identidades, Sentinel reúne señales y Purview ayuda a gobernar los datos en sus respectivos edificios.'}</p><small>Simulación ilustrativa; no muestra tráfico ni incidentes reales.</small>`;
+  panel.querySelector('button').onclick=()=>{panel.hidden=true;document.body.classList.remove('executive-tour');};
+}
+document.getElementById('cam-airport').onclick=()=>openLivingScene('airport');
+document.getElementById('cam-security').onclick=()=>openLivingScene('security');

@@ -401,3 +401,75 @@ body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tou
 .topbar .brand { min-width: 100px; }
 .brand-logo { display:block; width:108px; height:50px; object-fit:contain; }
 @media(max-width:900px) { .brand-logo { width:88px; height:42px; } }
+
+/* ITSE enterprise toolkit — scoped to the upper toolbar. */
+.topbar {
+  --toolbar-primary:#010ED0; --toolbar-cyan:#007A7A;
+  top:16px; left:32px; right:32px; margin-inline:auto; max-width:1440px;
+  height:80px; padding:16px 24px; gap:16px; flex-wrap:nowrap;
+  background:#FFFFFF; color:#0F172A; border:1px solid #E2E8F0; border-radius:12px;
+  box-shadow:0 1px 3px rgba(1,14,208,.04),0 1px 2px -1px rgba(1,14,208,.02);
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+}
+.topbar .brand { gap:16px; min-width:0; flex:1; margin-right:auto; }
+.topbar .brand-logo { width:92px; height:44px; flex:none; }
+.toolbar-context { padding-left:16px; border-left:1px solid #E2E8F0; white-space:nowrap; }
+.toolbar-context span { display:block; color:#64748B; font:600 10px/16px Inter,sans-serif; letter-spacing:.08em; }
+.toolbar-context strong { display:block; color:#0F172A; font:600 18px/24px 'Hanken Grotesk',Inter,sans-serif; }
+.topbar .btn, .topbar .icon-btn, .topbar select {
+  border-radius:4px; height:40px; min-height:40px; font:600 12px/16px Inter,sans-serif;
+  transition:background-color .1s ease-out,border-color .1s ease-out;
+}
+.topbar #executive-start { background:var(--toolbar-primary); color:white; padding:0 16px; white-space:nowrap; border:1px solid var(--toolbar-primary); box-shadow:none; }
+.topbar #executive-start:hover { background:#010BB0; border-color:#010BB0; }
+.topbar #audio-toggle { background:#FFFFFF; color:#0F172A; border:1px solid #E2E8F0; padding:0 12px; white-space:nowrap; }
+.topbar #audio-toggle:hover { background:#F8FAFC; }
+.topbar #audio-toggle[aria-pressed="true"] { background:#E6F7F7; border-color:#00A8A8; color:#006A6A; }
+.topbar .layer-control { color:#454556; font:600 11px/16px Inter,sans-serif; gap:8px; white-space:nowrap; }
+.topbar select { background:#FFFFFF; color:#0F172A; border:1px solid #CBD5E1; padding:0 28px 0 12px; max-width:none; }
+.topbar :is(button,select):focus-visible { outline:2px solid #010ED0; outline-offset:2px; box-shadow:0 0 0 3px rgba(1,14,208,.15); }
+.topbar .live { display:flex; background:#E6F7F7; color:var(--toolbar-cyan); border-radius:4px; font-size:11px; padding:8px; gap:6px; }
+.topbar .live .dot { width:6px; height:6px; background:#00A8A8; box-shadow:none; animation:none; }
+.topbar #clock { display:none; }
+.topbar #bell { width:40px; background:#FFFFFF; color:#475569; border:1px solid #E2E8F0; }
+.topbar #bell:hover { background:#F8FAFC; }
+.topbar .badge { background:#EF6C00; }
+.topbar .dropdown { border:1px solid #CBD5E1; border-radius:8px; box-shadow:0 4px 6px -1px rgba(15,23,42,.07),0 2px 4px -2px rgba(1,14,208,.05); }
+.topbar .user { display:none; }
+@media(max-width:1200px) { .toolbar-context { display:none; } .topbar { gap:12px; } }
+@media(max-width:1023px) { .topbar { left:24px; right:24px; padding:12px 16px; gap:8px; height:72px; } .topbar .live { display:none; } }
+@media(max-width:639px) {
+  .topbar { top:12px; left:16px; right:16px; height:auto; padding:12px; display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px 8px; }
+  .topbar .brand { grid-column:1; margin:0; }
+  .topbar .brand-logo { width:78px; height:38px; }
+  .topbar #executive-start { grid-column:2/4; font-size:11px; padding:0 10px; }
+  .topbar .layer-control { grid-column:1; min-width:0; font-size:0; gap:0; }
+  .topbar .layer-control select { width:100%; min-width:0; padding:0 4px; font-size:11px; }
+  .topbar #audio-toggle { grid-column:2; padding:0 8px; font-size:11px; }
+  .topbar .bell-wrap { grid-column:3; }
+  .topbar .notif { position:fixed; top:144px; left:16px; right:16px; width:auto; }
+  .detail,.drawer { top:144px; }
+}
+@media(prefers-reduced-motion:reduce) { .topbar * { transition:none; } }
+
+/* Glass product labels: original artwork stays full-color and uncropped. */
+.blabel {
+  appearance:none; font-family:Inter,Arial,sans-serif; line-height:1.4;
+  background:rgba(248,252,255,.70); color:#12243a;
+  border:1px solid rgba(255,255,255,.85); border-radius:10px;
+  padding:5px 10px 5px 6px; gap:7px;
+  backdrop-filter:blur(10px) saturate(135%);
+  -webkit-backdrop-filter:blur(10px) saturate(135%);
+  box-shadow:0 3px 12px rgba(15,35,70,.12),inset 0 1px 0 rgba(255,255,255,.7);
+}
+.blabel .product-icon { width:24px;height:24px;object-fit:contain;flex:0 0 24px; }
+.blabel .role-icon { display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;font-style:normal;font-size:21px;background:rgba(255,255,255,.65);box-shadow:none; }
+.blabel em { display:none; }
+.blabel:hover,.blabel:focus-visible { background:rgba(255,255,255,.9);border-color:#00A8A8;outline:2px solid rgba(0,168,168,.35);outline-offset:2px; }
+.blabel.sel { background:rgba(224,232,255,.88);color:#010B86;border-color:#8999EE; }
+.vtag { background:rgba(248,252,255,.76);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.85); }
+@media(max-width:639px) { .blabel { padding:4px 7px;gap:5px; }.blabel .product-icon,.blabel .role-icon { width:20px;height:20px;flex-basis:20px; } }
+@supports not (backdrop-filter:blur(10px)) { .blabel,.vtag { background:rgba(248,252,255,.94); } }
+
+.label-leader { position:absolute;left:0;top:0;height:1px;transform-origin:0 50%;background:rgba(232,249,255,.85);pointer-events:none;z-index:-1; }
+body.hide-labels .label-leader { display:none!important; }

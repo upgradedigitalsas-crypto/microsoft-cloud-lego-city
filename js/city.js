@@ -2,6 +2,7 @@
 //  Ciudad LEGO: baseplate, calles y distritos del portafolio Microsoft Cloud
 // ============================================================================
 import * as THREE from 'three';
+import { buildAirport } from './airport.js';
 import { buildBeach } from './beach.js';
 import { BOULEVARD, roadAccess } from './urban.js';
 import { SERVICE_ROLES } from './ecosystem.js';
@@ -33,6 +34,7 @@ export function buildCity(scene) {
   decorate(scene, studs, world);
   buildLandscape(scene, world, studs);
   buildBeach(scene, world, studs);
+  buildAirport(scene, world, studs);
   studs.flush(scene);
   batchStaticBricks(scene);
   world.beach.group.traverse(o => { if(o.isMesh) o.userData.landmark = 'beach'; });
