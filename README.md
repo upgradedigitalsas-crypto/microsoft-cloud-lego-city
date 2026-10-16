@@ -144,3 +144,13 @@ y permite repetir el proceso, sin crear objetos nuevos por pedido.
 Pruebas: todas las rutas del bulevar, cobertura ejecutiva, 24.000 pasos de
 simulación y ciclo de playa. La escena de prueba registra 1.370 draw calls sin
 sombras; no constituye una medición de 60 FPS en dispositivos reales.
+
+### Costa y llegadas completas
+
+El mar translúcido alcanza la parte baja de la costa y deja ver la tierra sumergida.
+Cinco nadadores LEGO animan brazos y flotación con la misma función de oleaje del
+océano. La playa conecta con el agua mediante escalones de arena.
+Cada edificio tiene un ramal continuo, tres plazas señalizadas y acceso peatonal.
+Los ramales eligen el lateral que evita edificios y lago; la simulación recorre
+la misma geometría desde y hacia los parqueaderos. La regresión verifica las
+20 conexiones y múltiples entregas en 20 minutos simulados.

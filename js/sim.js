@@ -172,7 +172,7 @@ export class Simulation {
     const end = this.slotFor(toId, v);
     v.slot = end;
     // Aproximación al carril
-    const pts = [start, ...lane, end];
+    const pts = [start, ...A.driveway.slice().reverse(), ...lane, ...Bb.driveway, end];
     v.path = polyline(dedupe(pts));
     v.s = 0;
     v.dest = toId;

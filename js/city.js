@@ -67,7 +67,7 @@ function buildRoads(scene) {
   BOULEVARD.forEach((a, i) => segments.push([a, BOULEVARD[(i + 1) % BOULEVARD.length], 7]));
   for (const d of DISTRICTS) {
     const access = roadAccess(...d.pos);
-    segments.push([access.point, access.dock, 5]);
+    access.driveway.slice(1).forEach((point,i)=>segments.push([access.driveway[i],point,5]));
   }
   const matrix = new THREE.Matrix4(), quaternion = new THREE.Quaternion(), position = new THREE.Vector3(), scale = new THREE.Vector3();
   for (const [material, extra, height] of [[curb, 2, 0.18], [asphalt, 0, 0.24]]) {
@@ -112,7 +112,17 @@ function buildDistrict(scene, def, studs) {
   const access = roadAccess(bx, bz);
   const [rx, rz] = access.point, [dx, dz] = access.dock;
   const dock = new THREE.Group(); g.add(dock);
-  for (let i = -1; i <= 1; i++) tile(dock, { w: 3.8, d: 0.25, x: dx-bx+i*5, z: dz-bz, y: 0.3, color: '#F2C200', ctx, h: 0.06 });
+  tile(dock,{w:18,d:10,x:0,z:21,y:0.02,h:0.3,color:'#617082',ctx});
+  for(let i=-1;i<=1;i++) {
+    tile(dock,{w:0.18,d:7,x:i*5-2.3,z:20,y:0.34,h:0.04,color:'#FFFFFF',ctx});
+    tile(dock,{w:4.6,d:0.18,x:i*5,z:16.6,y:0.34,h:0.04,color:'#FFFFFF',ctx});
+    tile(dock,{w:2.6,d:0.4,x:i*5,z:17,y:0.38,h:0.2,color:'#F2C200',ctx});
+  }
+  tile(dock,{w:0.18,d:7,x:7.7,z:20,y:0.34,h:0.04,color:'#FFFFFF',ctx});
+  tile(dock,{w:3,d:5,x:10.5,z:15.5,y:0.1,h:0.32,color:'#EBD9AD',ctx});
+  tile(dock,{w:6,d:2,x:8,z:13,y:0.1,h:0.32,color:'#EBD9AD',ctx});
+  for(let i=0;i<4;i++)tile(dock,{w:2.8,d:0.35,x:10.5,z:18+i*0.8,y:0.34,h:0.04,color:'#FFFFFF',ctx});
+  sign(dock,'P · LLEGADAS',{x:10,z:22,y:3,w:5,h:1.3,bg:'#1E7BD8',fg:'#FFFFFF'});
   const entrance = buildServiceEntrance(g, ctx, lotW, lotD);
   // Recolecta meshes para picking y atenuado
   const meshes = [];
@@ -121,6 +131,7 @@ function buildDistrict(scene, def, studs) {
   return {
     def, group: g, height, anims: res.anims || [], api: res.api || {}, entrance,
     lot: { width: lotW, depth: lotD },
+    driveway: access.driveway.map(([x,z])=>new THREE.Vector3(x,0,z)),
     roadIndex: access.index, road: new THREE.Vector3(rx, 0, rz),
     dock: new THREE.Vector3(dx, 0, dz),
     slots: [-5, 0, 5].map(o => new THREE.Vector3(dx + o, 0, dz)),

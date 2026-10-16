@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { brick, sign, matCache, minifig } from './lego.js';
+import { brick, sign, matCache, minifig, plastic } from './lego.js';
 
 export const BEACH_STEPS = [
   ['Solicitud recibida', 'Un visitante pide una bebida en el kiosco. Power Apps registra la solicitud.'],
@@ -35,6 +35,22 @@ export function buildBeach(scene, world, studs) {
   brick(robot,{x:0,z:0,y:1.95,w:2,d:2,h:0.65,color:'#1E7BD8',ctx});
   for(const x of [-1.3,1.3]) for(const z of [-1,1]) brick(robot,{x,z,y:0.25,w:0.5,d:0.8,h:0.7,color:'#273E5B',ctx,studs:false});
   sign(robot,'BOT',{x:0,z:1.55,y:1.3,w:1.7,h:0.6,bg:'#1E7BD8',fg:'#FFFFFF'});
+  // Terraced sand meets the sea; swimmers stay beyond the land silhouette.
+  for(let i=0;i<4;i++) brick(group,{x:0,z:13+i*3,y:-i*1.25,w:24-i*2,d:3,h:0.55,color:'#E8C67B',ctx});
+  const swimmers=[];
+  for(let i=0;i<5;i++) {
+    const swimmer=new THREE.Group(),body=minifig(['#F4513C','#1D8DD8','#F2C72C','#9B5CD6','#2BAE80'][i]);
+    body.rotation.x=Math.PI/2; body.position.set(0,0.3,-1.2); swimmer.add(body);
+    swimmer.scale.setScalar(1.4); scene.add(swimmer);
+    swimmers.push({swimmer,body,x:-92+i*9,z:158+(i%2)*7});
+    if(i%2===0){const ring=new THREE.Mesh(new THREE.TorusGeometry(1.05,0.23,8,16),plastic(i?'#F2C200':'#F28C28'));ring.rotation.x=Math.PI/2;ring.position.y=0.2;swimmer.add(ring);}
+  }
+  world.anims.push(t=>swimmers.forEach(({swimmer,body,x,z},i)=>{
+    const sx=x+Math.sin(t*0.22+i)*2,sz=z+Math.cos(t*0.18+i)*2;
+    const wave=Math.sin(sx*0.045+t*0.8)*1.2+Math.cos(-sz*0.065-t*0.65)*0.8;
+    swimmer.position.set(sx,-4.7+wave,sz);swimmer.rotation.y=Math.sin(t*0.12+i)*0.35;
+    const arms=body.userData.arms; if(arms){arms[0].rotation.x=Math.sin(t*2+i)*0.8;arms[1].rotation.x=-Math.sin(t*2+i)*0.8;}
+  }));
   let phase=-1, elapsed=0, completed=0, listener=()=>{};
   const api={group, start(){if(phase>=0)return;phase=0;elapsed=0;listener(phase,completed);}, subscribe(fn){listener=fn;fn(phase,completed);}, get running(){return phase>=0;}};
   world.beach=api;

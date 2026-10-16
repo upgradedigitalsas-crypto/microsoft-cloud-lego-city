@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { inLake } from './urban.js';
-import { PLATE, X_ROADS, Z_ROADS } from './data.js';
+import { PLATE, X_ROADS, Z_ROADS, DISTRICTS } from './data.js';
 
 export const ISLAND_STEP = 4;
 // Preserve every service lot inside an asymmetric, block-stepped coastline.
 export function isIslandLand(x, z) {
+  if (DISTRICTS.some(d => Math.abs(x-d.pos[0])<=20 && z>=d.pos[1]-16 && z<=d.pos[1]+27)) return true;
   if (Math.hypot((x + 76) / 28, (z - 128) / 19) < 1) return true;
   if (x >= PLATE.minX && x <= PLATE.maxX && z >= PLATE.minZ && z <= PLATE.maxZ) return true;
   const angle = Math.atan2(z / 133, x / 168);
@@ -59,7 +60,7 @@ export function buildIslandTerrain(scene, studs, world) {
 
   // Ocean shader: a fixed grid and time uniform animate waves without reallocating geometry.
   const time = { value: 0 };
-  const seaMaterial = new THREE.MeshStandardMaterial({ color: '#278DB9', roughness: 0.32, metalness: 0.12 });
+  const seaMaterial = new THREE.MeshStandardMaterial({ color: '#279FC3', roughness: 0.22, metalness: 0.08, transparent: true, opacity: 0.62, depthWrite: false });
   seaMaterial.onBeforeCompile = shader => {
     shader.uniforms.oceanTime = time;
     shader.vertexShader = 'uniform float oceanTime;\n' + shader.vertexShader;
@@ -76,7 +77,7 @@ export function buildIslandTerrain(scene, studs, world) {
   };
   seaMaterial.customProgramCacheKey = () => 'cloudcity-ocean-v1';
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000, 220, 220), seaMaterial);
-  sea.rotation.x = -Math.PI / 2; sea.position.y = -188;
-  sea.receiveShadow = true; scene.add(sea);
+  sea.rotation.x = -Math.PI / 2; sea.position.y = -5;
+  sea.receiveShadow = true; sea.renderOrder = 2; scene.add(sea);
   world.anims.push(t => { time.value = t; });
 }

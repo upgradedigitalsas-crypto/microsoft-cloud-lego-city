@@ -40,6 +40,7 @@ try {
     if(route[0]!==BOULEVARD[from] || route.at(-1)!==BOULEVARD[to] || route.length>BOULEVARD.length/2+1) throw new Error('Ruta urbana incorrecta');
   }
   assert(true, 'Todas las rutas del bulevar son continuas y toman el sentido más corto');
+  assert([...world.buildings.values()].every(b=>b.driveway[0].equals(b.road) && b.driveway.at(-1).equals(b.dock) && b.slots.length===3), 'Cada edificio tiene acceso continuo desde el bulevar hasta tres plazas de llegada');
   let events = 0;
   const deliveries = new Map();
   const unsubscribe = sim.on('event', () => events++);
