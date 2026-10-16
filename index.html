@@ -33,7 +33,7 @@
 
       <div class="search">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="search" placeholder="Buscar servicios, contratos, camiones, agentes…" autocomplete="off" />
+        <input id="search" placeholder="Explorar el portafolio Microsoft Cloud…" autocomplete="off" />
         <kbd>/</kbd>
         <div id="search-results" class="dropdown"></div>
       </div>
@@ -44,6 +44,13 @@
         <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>
 
+      <label class="layer-control">Capas
+        <select id="layer-filter" aria-label="Filtrar pilares del mundo LEGO">
+          <option value="all">Todo el portafolio</option><option value="security">Seguridad</option>
+          <option value="data">Datos / OneLake</option><option value="licensing">Licenciamiento</option>
+        </select>
+      </label>
+      <button id="audio-toggle" class="btn ghost" aria-pressed="false">Sonido: no</button>
       <div class="live"><span class="dot"></span>Live <b id="clock">--:--</b></div>
 
       <div class="bell-wrap">
@@ -97,7 +104,7 @@
       <button data-mode="check"><span>✅</span>Checklist</button>
     </nav>
 
-    <aside class="drawer glass" id="drawer">
+    <aside class="drawer glass" id="drawer" inert>
       <div class="drawer-head">
         <div><small id="drawer-kicker"></small><h2 id="drawer-title"></h2></div>
         <button class="icon-btn" id="drawer-close" title="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -116,17 +123,18 @@
     </div>
 
     <!-- ====================== DETALLE ====================== -->
-    <aside class="detail glass" id="detail"></aside>
+    <aside class="detail glass" id="detail" inert></aside>
 
     <!-- ====================== TRACKER ====================== -->
     <section class="tracker glass" id="tracker"></section>
 
     <!-- ====================== FLOTA ====================== -->
     <section class="fleet glass">
+      <button id="fleet-toggle" class="fleet-toggle" aria-expanded="false">Explorar portafolio</button>
       <div class="fleet-head">
         <div class="tabs" id="fleet-tabs">
-          <button data-tab="districts">Distritos <b id="t-districts"></b></button>
-          <button data-tab="trucks" class="active">Flota <b id="t-trucks"></b></button>
+          <button data-tab="districts" class="active">Distritos <b id="t-districts"></b></button>
+          <button data-tab="trucks">Flota <b id="t-trucks"></b></button>
           <button data-tab="agents">Agentes IA <b id="t-agents"></b></button>
         </div>
         <span class="fleet-site">Contoso · LATAM</span>

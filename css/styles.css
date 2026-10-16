@@ -268,3 +268,59 @@ body.night .loader { background: #0E1626; }
 @media (max-width: 1500px) { .kpi em { display: none; } .kpi { min-width: 150px; } .kpi:nth-child(5) { display: none; } }
 @media (max-width: 1280px) { .user div, .tenant-info small { display: none; } .tracker { display: none; } .fleet { width: 520px; } .kpi:nth-child(4) { display: none; } }
 @media (max-width: 900px) { .brand-sub, .tenant, .kpis { display: none; } .modes { top: 84px; } .drawer, .detail { top: 84px; } .fleet { left: 12px; width: auto; } .drawer { width: calc(100% - 210px); } }
+
+/* Portfolio controls and touch-safe panels */
+.layer-control { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; }
+.layer-control select { max-width: 170px; border: 1px solid var(--line); border-radius: 9px; padding: 7px; background: #F4F6FA; }
+.search, .search input { min-width: 0; }
+.blabel, .vtag { position: absolute; top: 0; left: 0; }
+.blabel { transition: opacity .25s; }
+#stage canvas { touch-action: none; }
+.fleet-toggle { display: none; }
+.field input:not([type=checkbox]):not([type=range]) { width: 100%; padding: 9px; border: 1px solid var(--line); border-radius: 9px; background: #F7F9FC; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+#proposal-print { display: none; }
+@media (max-width: 1500px) { .topbar { gap: 8px; padding: 0 10px; } .brand { min-width: 125px; } .tenant, .user { display: none; } }
+@media (max-width: 1100px) and (min-width: 901px) { .drawer.open ~ .detail { visibility: hidden; } .live { display: none; } }
+@media (max-width: 900px) {
+  .topbar { top: max(8px, env(safe-area-inset-top)); left: 8px; right: 8px; height: 108px; flex-wrap: wrap; align-content: center; gap: 6px; }
+  .brand { min-width: 0; flex: 1; } .brand-name { font-size: 16px; } .brand-brick { width: 28px; }
+  .search { order: 5; flex: 1 1 100%; max-width: none; height: 38px; }
+  .search input { font-size: 16px; } .search kbd, .live, .user, .tenant { display: none; }
+  .layer-control { font-size: 0; } .layer-control select { font-size: 12px; max-width: 145px; min-height: 44px; }
+  #audio-toggle { padding: 6px; font-size: 11px; min-height: 44px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .modes { top: 124px; left: 8px; right: 8px; width: auto; flex-direction: row; overflow-x: auto; flex-wrap: nowrap; }
+  .modes button { flex: none; min-height: 44px; padding: 8px; }
+  .drawer, .detail { top: auto; bottom: max(60px, env(safe-area-inset-bottom)); left: 8px; right: 8px; width: auto; max-height: min(48dvh, 430px); }
+  .drawer { height: min(48dvh, 430px); }
+  .detail { padding: 12px; }
+  body.drawer-open .detail { visibility: hidden; }
+  .cam-tools, body.no-detail .cam-tools { top: 190px; right: 8px; width: 44px; }
+  .cam-tools button { min-height: 44px; }
+  .fleet { bottom: max(8px, env(safe-area-inset-bottom)); left: 8px; right: 8px; width: auto; padding: 4px; }
+  .fleet-toggle { display: block; min-height: 44px; width: 100%; font-weight: 600; }
+  .fleet .fleet-head, .fleet .fleet-body { display: none; }
+  body.fleet-open .fleet .fleet-head { display: flex; }
+  body.fleet-open .fleet .fleet-body { display: flex; max-height: 30dvh; }
+  body.fleet-open .fleet-list { max-height: 25dvh; }
+  .fleet-site { display: none; } #minimap { width: 110px; height: 110px; }
+  .f-row { grid-template-columns: 76px 1fr 70px; min-height: 44px; } .f-row .meta, .f-row .chev { display: none; }
+  .tracker { display: none !important; } .toasts { top: 186px; right: 60px; width: min(280px, calc(100% - 80px)); }
+  .notif { width: min(340px, calc(100vw - 24px)); }
+  .field input, .field select { font-size: 16px; min-height: 44px; }
+  .blabel { font-size: 10px; padding: 4px; } .blabel em { display: none; }
+}
+@media (max-height: 550px) and (max-width: 900px) { .cam-tools { flex-direction: row; width: auto; top: 186px; } .cam-tools button { width: 40px; } .drawer, .detail { max-height: 42dvh; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media print {
+  @page { size: A4; margin: 20mm; }
+  html, body { height: auto; overflow: visible; background: white; }
+  #app { display: none !important; }
+  #proposal-print { display: block; color: #142033; font: 12pt/1.5 Arial, sans-serif; border-top: 8px solid #1E7BD8; padding-top: 20px; }
+  #proposal-print h1 { font-size: 25pt; } #proposal-print h2 { color: #2563EB; }
+}
+
+@media (max-width: 480px) { .brand-brick { display: none; } .brand-name { font-size: 15px; } .layer-control select { max-width: 136px; } }
+
+@media (min-width: 901px) { .detail { max-height: calc(100% - 422px); } .drawer { bottom: 250px; } }

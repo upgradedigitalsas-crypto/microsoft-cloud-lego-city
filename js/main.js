@@ -7,9 +7,14 @@ import {
   DOC, PILLARS, DISTRICTS, FLOWS, RESPONSIBILITY, BILLING, CONTRACTS,
   BUNDLE, CHECKLIST, ROLES, PLATE,
 } from './data.js';
-import { brackets } from './lego.js';
+import { brackets, disposeGeometryCaches } from './lego.js';
 import { buildCity } from './city.js';
 import { Simulation, STATUS } from './sim.js';
+import { pointerNDC } from './picking.js';
+import { BrickAudio } from './audio.js';
+import { optimization, bundle, printProposal } from './proposal.js';
+const audio = new BrickAudio();
+const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // ---------------------------------------------------------------------------
 // 1. Configuración Three.js
@@ -19,7 +24,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#EEF2F7');
 scene.fog = new THREE.FogExp2('#EEF2F7', 0.0035);
 
-const aspect = window.innerWidth / window.innerHeight;
+const aspect = container.clientWidth / container.clientHeight;
 const camera = new THREE.PerspectiveCamera(38, aspect, 1, 1000);
 const DEFAULT_CAM_POS = new THREE.Vector3(120, 115, 135);
 const DEFAULT_TARGET = new THREE.Vector3(0, 4, 0);
@@ -36,6 +41,11 @@ container.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.touches.ONE = THREE.TOUCH.ROTATE;
+controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+controls.rotateSpeed = 0.65;
+controls.zoomSpeed = 0.8;
+controls.addEventListener('start', () => { state.camTarget = null; });
 controls.dampingFactor = 0.06;
 controls.target.copy(DEFAULT_TARGET);
 controls.maxPolarAngle = Math.PI / 2.08;
@@ -49,8 +59,8 @@ scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight('#ffffff', 1.35);
 dirLight.position.set(90, 140, 70);
 dirLight.castShadow = true;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
+const shadowSize = matchMedia('(pointer: coarse)').matches ? 1024 : 2048;
+dirLight.shadow.mapSize.set(shadowSize, shadowSize);
 dirLight.shadow.camera.near = 20;
 dirLight.shadow.camera.far = 400;
 const d = 95;
@@ -81,7 +91,8 @@ scene.add(selectBox);
 const state = {
   selected: null, // { kind: 'district' | 'truck' | 'patrol' | 'drone', id, data }
   mode: 'live',
-  tab: 'trucks',
+  tab: 'districts',
+  filter: 'all',
   isNight: false,
   simTime: new Date(2026, 9, 15, 9, 45),
   camTarget: null, // { pos, look, t: 0, dur }
@@ -155,13 +166,19 @@ export function selectEntity(kind, id, focusCamera = true) {
     return;
   }
 
+  if (kind === 'district' ? !world.buildings.has(id) : !sim.get(id)) return;
+  if (window.matchMedia('(max-width: 900px)').matches && state.mode !== 'live') setMode('live');
+  document.body.classList.remove('fleet-open');
+  document.getElementById('fleet-toggle').setAttribute('aria-expanded', 'false'); document.getElementById('fleet-toggle').textContent = 'Explorar portafolio';
   document.body.classList.remove('no-detail');
+  audio.click();
 
   if (kind === 'district') {
     const d = DISTRICTS.find(x => x.id === id);
     const b = world.buildings.get(id);
     state.selected = { kind: 'district', id, data: d, building: b };
     selectBox.visible = true;
+    selectBox.rotation.set(0, 0, 0);
     selectBox.position.set(d.pos[0], b.height / 2 + 0.2, d.pos[1]);
     selectBox.scale.set(b.size.x + 2, b.size.y + 1, b.size.z + 2);
     vehicleTag.classList.add('hidden');
@@ -204,50 +221,39 @@ function updateLabelsVisibility() {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-renderer.domElement.addEventListener('pointerdown', (e) => {
-  renderer.domElement._downX = e.clientX;
-  renderer.domElement._downY = e.clientY;
+const pickables = [];
+world.buildings.forEach(b => pickables.push(...b.meshes));
+sim.all().forEach(v => v.group.traverse(o => {
+  if (o.isMesh && o !== v.group.userData.beam) pickables.push(o);
+}));
+const pointers = new Set();
+let tap = null;
+renderer.domElement.addEventListener('pointerdown', e => {
+  pointers.add(e.pointerId);
+  if (pointers.size === 1 && e.button === 0) tap = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+  else tap = null;
 });
-
-renderer.domElement.addEventListener('pointerup', (e) => {
-  const dx = Math.abs(e.clientX - renderer.domElement._downX);
-  const dy = Math.abs(e.clientY - renderer.domElement._downY);
-  if (dx > 5 || dy > 5) return; // Arrastre de cámara, no clic
-
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+renderer.domElement.addEventListener('pointermove', e => {
+  if (tap && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 6) tap.moved = true;
+});
+renderer.domElement.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); tap = null; });
+renderer.domElement.addEventListener('pointerup', e => {
+  pointers.delete(e.pointerId);
+  const start = tap; tap = null;
+  if (!start || start.id !== e.pointerId || start.moved || pointers.size ||
+      Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const ndc = pointerNDC(e.clientX, e.clientY, rect);
+  if (!ndc) return;
+  mouse.set(ndc.x, ndc.y);
+  camera.updateMatrixWorld(); scene.updateMatrixWorld(true);
   raycaster.setFromCamera(mouse, camera);
-
-  // Primero raycast contra vehículos
-  const vehicleMeshes = [];
-  sim.all().forEach(v => {
-    v.group.traverse(o => { if (o.isMesh) vehicleMeshes.push(o); });
-  });
-
-  const vHits = raycaster.intersectObjects(vehicleMeshes, false);
-  if (vHits.length > 0) {
-    let curr = vHits[0].object;
-    while (curr && !curr.userData.entityId) curr = curr.parent;
-    if (curr?.userData.entityId) {
-      selectEntity('vehicle', curr.userData.entityId);
-      return;
-    }
-  }
-
-  // Si no pegó en vehículo, raycast contra edificios
-  const buildingMeshes = [];
-  world.buildings.forEach(b => { buildingMeshes.push(...b.meshes); });
-  const bHits = raycaster.intersectObjects(buildingMeshes, false);
-  if (bHits.length > 0) {
-    const bid = bHits[0].object.userData.entityId;
-    if (bid) {
-      selectEntity('district', bid);
-      return;
-    }
-  }
-
-  // Clic en la nada -> deselecciona
-  selectEntity(null, null);
+  // One distance-sorted query respects occlusion across vehicles and buildings.
+  const hit = raycaster.intersectObjects(pickables, false).find(h =>
+    h.object.visible && (h.object.material.opacity === undefined || h.object.material.opacity > 0.05));
+  const id = hit?.object.userData.entityId;
+  if (id) selectEntity(world.buildings.has(id) ? 'district' : 'vehicle', id);
+  else selectEntity(null, null);
 });
 
 // ---------------------------------------------------------------------------
@@ -257,6 +263,7 @@ const detailEl = document.getElementById('detail');
 const trackerEl = document.getElementById('tracker');
 
 function renderDetail() {
+  detailEl.inert = !state.selected;
   if (!state.selected) {
     detailEl.innerHTML = '';
     return;
@@ -405,7 +412,7 @@ function renderDetail() {
 }
 
 function renderTracker() {
-  const v = state.selected?.kind === 'truck' ? state.selected.data : sim.vehicles.find(x => x.kind === 'truck' && x.status === 'transit') || sim.vehicles[0];
+  const v = state.selected?.kind === 'truck' ? state.selected.data : null;
   if (!v || !v.job) {
     trackerEl.style.display = 'none';
     return;
@@ -525,6 +532,7 @@ const mmCtx = minimapCanvas.getContext('2d');
 function updateMinimap() {
   const cw = minimapCanvas.width;
   const ch = minimapCanvas.height;
+  if (!mmCtx) return;
   mmCtx.clearRect(0, 0, cw, ch);
 
   // Mapeo coordenadas del mundo [-78..78, -52..54] a canvas [0..cw, 0..ch]
@@ -598,8 +606,8 @@ minimapCanvas.addEventListener('click', (e) => {
   const rect = minimapCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  const worldX = PLATE.minX + (x / rect.width) * (PLATE.maxX - PLATE.minX);
-  const worldZ = PLATE.minZ + (y / rect.height) * (PLATE.maxZ - PLATE.minZ);
+  const worldX = PLATE.minX + THREE.MathUtils.clamp((x / rect.width * minimapCanvas.width - 8) / (minimapCanvas.width - 16), 0, 1) * (PLATE.maxX - PLATE.minX);
+  const worldZ = PLATE.minZ + THREE.MathUtils.clamp((y / rect.height * minimapCanvas.height - 8) / (minimapCanvas.height - 16), 0, 1) * (PLATE.maxZ - PLATE.minZ);
   const targetLook = new THREE.Vector3(worldX, 4, worldZ);
   const targetPos = targetLook.clone().add(new THREE.Vector3(60, 65, 75));
   flyCameraTo(targetPos, targetLook, 0.8);
@@ -624,7 +632,11 @@ modesNav.querySelectorAll('button').forEach(btn => {
 });
 
 export function setMode(mode) {
+  if (mode !== 'live') { document.body.classList.remove('fleet-open'); document.getElementById('fleet-toggle').setAttribute('aria-expanded', 'false'); document.getElementById('fleet-toggle').textContent = 'Explorar portafolio'; }
+  drawer.inert = mode === 'live';
   state.mode = mode;
+  document.body.classList.toggle('drawer-open', mode !== 'live');
+  if (mode !== 'live' && window.matchMedia('(max-width: 900px)').matches) selectEntity(null, null);
   modesNav.querySelectorAll('button').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
@@ -639,23 +651,57 @@ export function setMode(mode) {
   renderDrawerContent(mode);
 }
 
-function highlightPillars(allowedPillars = []) {
+let highlightedPillars = [];
+const layers = {
+  security: ['entra', 'defender', 'sentinel', 'purview'],
+  data: ['fabric', 'azuredata'],
+  licensing: ['ea', 'mcae', 'csp'],
+};
+const materialDefaults = new WeakMap();
+function tint(material, lit) {
+  if (!materialDefaults.has(material)) materialDefaults.set(material, {
+    color: material.color?.clone(), emissive: material.emissive?.clone(),
+  });
+  const base = materialDefaults.get(material);
+  if (base.color) material.color.copy(base.color).multiplyScalar(lit ? 1 : 0.22);
+  if (base.emissive) material.emissive.copy(base.emissive).multiplyScalar(lit ? 1 : 0.08);
+}
+function applyFilters() {
+  const allowed = layers[state.filter];
   world.buildings.forEach((b, id) => {
-    const isLit = allowedPillars.length === 0 || allowedPillars.includes(b.def.pillar);
-    b.materials.forEach(m => {
-      if (m.userData.base) {
-        m.color.copy(m.userData.base);
-        if (!isLit) m.color.multiplyScalar(0.35);
-      }
-    });
+    const lit = (!allowed || allowed.includes(id)) &&
+      (!highlightedPillars.length || highlightedPillars.includes(b.def.pillar));
+    b.materials.forEach(m => tint(m, lit));
+    districtLabels.get(id).el.classList.toggle('dim', !lit);
+  });
+  sim.all().forEach(v => {
+    const lit = !allowed || (state.filter === 'security' && v.kind === 'patrol') ||
+      (state.filter === 'data' && v.flow.type === 'data') ||
+      (state.filter === 'licensing' && v.flow.type === 'license');
+    v.group.traverse(o => { if (o.isMesh) tint(o.material, lit); });
   });
 }
-function resetPillarHighlight() {
-  world.buildings.forEach(b => {
-    b.materials.forEach(m => {
-      if (m.userData.base) m.color.copy(m.userData.base);
-    });
-  });
+function highlightPillars(allowedPillars = []) { highlightedPillars = allowedPillars; applyFilters(); }
+function resetPillarHighlight() { highlightPillars([]); }
+document.getElementById('layer-filter').addEventListener('change', e => {
+  state.filter = e.target.value; applyFilters();
+});
+const audioButton = document.getElementById('audio-toggle');
+audioButton.addEventListener('click', async () => {
+  audioButton.disabled = true;
+  const enabled = await audio.toggle();
+  audioButton.textContent = enabled ? 'Sonido: sí' : 'Sonido: no';
+  audioButton.setAttribute('aria-pressed', String(enabled));
+  audioButton.disabled = false;
+  if (enabled) audio.click();
+});
+const money = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+function proposalInputs() {
+  return `<div class="field"><label for="proposal-client">Cliente</label><input id="proposal-client" maxlength="100" placeholder="Nombre de la empresa" /></div>
+    <button class="btn" id="export-proposal">Imprimir resumen / Guardar PDF</button>`;
+}
+function exportSummary(title, rows) {
+  printProposal({ client: document.getElementById('proposal-client').value || document.getElementById('search').value, title, rows });
 }
 
 function renderDrawerContent(mode) {
@@ -831,6 +877,8 @@ function renderDrawerContent(mode) {
         <div class="field">
           <label style="cursor:pointer;"><input type="checkbox" id="chk-ahb" checked /> Aplicar Azure Hybrid Benefit (AHB con Software Assurance activo)</label>
         </div>
+        <div class="field"><label for="opt-gross">Costo bruto mensual (USD)</label><input id="opt-gross" type="number" min="0" max="1000000000" value="380000" /></div>
+        ${proposalInputs()}
         <div class="result">
           <small>Ahorro Estimado Proyectado:</small>
           <div class="big" id="res-saving-pct">~58% ahorro</div>
@@ -842,11 +890,10 @@ function renderDrawerContent(mode) {
         <div class="tip"><b>Efecto Palanca Marketplace:</b> Las compras de Datadog, Snowflake, Palo Alto en Azure Marketplace descuentan <b>1:1</b> de tu saldo MACC.</div>
       `;
       const calcOpt = () => {
+        document.getElementById('lbl-ri').textContent = document.getElementById('sel-ri').selectedOptions[0].textContent;
         const ri = parseFloat(document.getElementById('sel-ri').value);
         const ahb = document.getElementById('chk-ahb').checked ? 0.18 : 0;
-        const totalDiscount = Math.min(0.75, ri * 0.7 + ahb);
-        const gross = 380000;
-        const net = gross * (1 - totalDiscount);
+        const { discount: totalDiscount, gross, net } = optimization({ gross: Math.max(0, Number(document.getElementById('opt-gross').value) || 0), ri, ahb: ahb > 0, macc: Number(document.getElementById('rng-macc').value) });
         document.getElementById('res-saving-pct').textContent = `~${(totalDiscount * 100).toFixed(0)}% ahorro neto`;
         document.getElementById('res-gross').textContent = `$${gross.toLocaleString()}/mes`;
         document.getElementById('res-net').textContent = `$${Math.round(net).toLocaleString()}/mes`;
@@ -856,8 +903,22 @@ function renderDrawerContent(mode) {
       document.getElementById('rng-macc')?.addEventListener('input', (e) => {
         document.getElementById('lbl-macc-val').textContent = `$${parseInt(e.target.value).toLocaleString()} USD`;
       });
+      document.getElementById('opt-gross').addEventListener('input', calcOpt);
+      document.getElementById('export-proposal').addEventListener('click', () => {
+        const result = optimization({ gross: Math.max(0, Number(document.getElementById('opt-gross').value) || 0),
+          ri: Number(document.getElementById('sel-ri').value), ahb: document.getElementById('chk-ahb').checked,
+          macc: Number(document.getElementById('rng-macc').value) });
+        exportSummary('Optimización de Azure', [
+          ['Costo bruto mensual', money(result.gross)], ['Costo optimizado mensual', money(result.net)],
+          ['Ahorro mensual', money(result.saving)], ['Ahorro anual', money(result.saving * 12)],
+          ['Reserva', document.getElementById('sel-ri').selectedOptions[0].textContent],
+          ['Beneficio híbrido', document.getElementById('chk-ahb').checked ? 'Sí (requiere elegibilidad)' : 'No'],
+          ['Compromiso MACC a 3 años', money(result.macc)],
+          ['Supuestos', '70% del gasto elegible para reserva + 18 puntos de AHB; descuento máximo ilustrativo del 75%'],
+        ]);
+      });
       calcOpt();
-      selectEntity('district', 'macc', true);
+      if (!window.matchMedia('(max-width: 900px)').matches) selectEntity('district', 'macc', true);
       break;
 
     case 'bundle':
@@ -865,6 +926,11 @@ function renderDrawerContent(mode) {
       drawerTitle.textContent = 'The Bundling Play: M365 E3 vs. E5';
       drawerBody.innerHTML = `
         <p>Microsoft consolida múltiples contratos multivendor fragmentados en un único paquete unificado con reducción neta de TCO.</p>
+        <div class="field"><label for="bundle-seats">Puestos</label><input id="bundle-seats" type="number" min="1" max="1000000" value="500" /></div>
+        <div class="field"><label for="bundle-current">Pila actual por puesto / mes (USD)</label><input id="bundle-current" type="number" min="0" step="0.01" value="61.5" /></div>
+        <div class="field"><label for="bundle-e5">E5 por puesto / mes (USD)</label><input id="bundle-e5" type="number" min="0" step="0.01" value="57" /></div>
+        <p>Valores ilustrativos editables; usa los precios de tu propuesta.</p>
+        ${proposalInputs()}
         <div class="bundle-wrap">
           <div class="bundle-col">
             <div class="lego" style="--c:#1E7BD8;height:38px;"><span>M365 E3 (Base)</span><b>$36</b></div>
@@ -883,12 +949,28 @@ function renderDrawerContent(mode) {
           </div>
         </div>
         <div class="result" style="margin-top:14px;">
-          <small>Comparativa Mensual por Asiento:</small>
-          <div class="big" style="color:#4ade80">$57 vs $61.50 USD</div>
+          <small>Ahorro mensual total para los puestos indicados:</small>
+          <div class="big" id="bundle-result" style="color:#4ade80"></div>
           <div style="font-size:12px;opacity:.85;margin-top:4px;">Ahorro directo en licenciamiento + eliminación de 6 agentes en endpoint y reducción de sobrecarga TI.</div>
         </div>
       `;
-      selectEntity('district', 'm365', true);
+      const readBundle = () => bundle({ seats: Math.max(1, Math.floor(Number(document.getElementById('bundle-seats').value) || 1)),
+        current: Math.max(0, Number(document.getElementById('bundle-current').value) || 0),
+        e5: Math.max(0, Number(document.getElementById('bundle-e5').value) || 0) });
+      const calcBundle = () => { document.getElementById('bundle-result').textContent = `${money(readBundle().saving)} ahorro / mes`; };
+      ['bundle-seats', 'bundle-current', 'bundle-e5'].forEach(id => document.getElementById(id).addEventListener('input', calcBundle));
+      document.getElementById('export-proposal').addEventListener('click', () => {
+        const result = readBundle();
+        exportSummary('Consolidación M365 E3 + proveedores vs E5', [
+          ['Puestos', document.getElementById('bundle-seats').value],
+          ['Pila actual por puesto / mes', money(Number(document.getElementById('bundle-current').value))],
+          ['E5 por puesto / mes', money(Number(document.getElementById('bundle-e5').value))],
+          ['Costo actual mensual', money(result.gross)], ['Costo E5 mensual', money(result.net)],
+          ['Ahorro mensual', money(result.saving)], ['Ahorro anual', money(result.saving * 12)],
+        ]);
+      });
+      calcBundle();
+      if (!window.matchMedia('(max-width: 900px)').matches) selectEntity('district', 'm365', true);
       break;
 
     case 'team':
@@ -946,7 +1028,7 @@ const searchInput = document.getElementById('search');
 const searchResults = document.getElementById('search-results');
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === '/' && document.activeElement !== searchInput) {
+  if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {
     e.preventDefault();
     searchInput.focus();
     searchInput.select();
@@ -974,7 +1056,7 @@ searchInput.addEventListener('input', () => {
   });
 
   if (results.length === 0) {
-    searchResults.innerHTML = `<div style="padding:10px;color:var(--ink-3);text-align:center;">No hay resultados para "${q}"</div>`;
+    searchResults.innerHTML = `<div style="padding:10px;color:var(--ink-3);text-align:center;">No hay resultados para "${escapeHTML(q)}"</div>`;
   } else {
     searchResults.innerHTML = results.slice(0, 8).map(r => `
       <div class="sr-item" data-kind="${r.kind}" data-id="${r.id}">
@@ -1110,7 +1192,7 @@ const kThreats = document.getElementById('k-threats');
 const kCopilot = document.getElementById('k-copilot');
 
 function updateKPIs() {
-  state.simTime = new Date(state.simTime.getTime() + 1000);
+  state.simTime = new Date(state.simTime.getTime() + 24000);
   clockEl.textContent = state.simTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   kAcr.textContent = `$${Math.round(sim.kpi.acr).toLocaleString()} USD`;
@@ -1135,15 +1217,17 @@ function updateKPIs() {
 // ---------------------------------------------------------------------------
 // 14. Bucle Principal de Renderizado
 // ---------------------------------------------------------------------------
+let disposed = false;
 const clock = new THREE.Clock();
 let mmTimer = 0;
 let kpiTimer = 0;
 const tempV = new THREE.Vector3();
 
 function animate() {
+  if (disposed) return;
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
-  const t = clock.getElapsedTime();
+  const t = clock.elapsedTime;
 
   // Actualizar cámara si está en transición
   updateCameraAnimation(dt);
@@ -1168,9 +1252,10 @@ function animate() {
       tempV.copy(ent.group.position);
       tempV.y += 3.8;
       tempV.project(camera);
-      if (tempV.z < 1) {
-        const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
-        const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+      vehicleTag.style.display = tempV.z > -1 && tempV.z < 1 ? 'flex' : 'none';
+      if (tempV.z > -1 && tempV.z < 1) {
+        const x = (tempV.x * 0.5 + 0.5) * container.clientWidth;
+        const y = (-(tempV.y * 0.5) + 0.5) * container.clientHeight;
         vehicleTag.style.transform = `translate(-50%, -100%) translate(${x}px, ${y}px)`;
         const st = STATUS[ent.status] || STATUS.transit;
         vehicleTag.innerHTML = `<span>${ent.id}</span> · ${st.label}`;
@@ -1181,9 +1266,9 @@ function animate() {
   // Proyectar etiquetas de distritos
   districtLabels.forEach(({ el, pos }) => {
     tempV.copy(pos).project(camera);
-    if (tempV.z < 1) {
-      const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+    if (tempV.z > -1 && tempV.z < 1) {
+      const x = (tempV.x * 0.5 + 0.5) * container.clientWidth;
+      const y = (-(tempV.y * 0.5) + 0.5) * container.clientHeight;
       el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
       el.style.display = 'flex';
     } else {
@@ -1204,7 +1289,7 @@ function animate() {
   }
 
   mmTimer += dt;
-  if (mmTimer > 0.08) {
+  if (mmTimer >= 1 / 12 && minimapCanvas.getClientRects().length) {
     mmTimer = 0;
     updateMinimap();
   }
@@ -1215,10 +1300,31 @@ function animate() {
 // ---------------------------------------------------------------------------
 // 15. Resize & Inicialización
 // ---------------------------------------------------------------------------
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+function resizeStage() {
+  const width = container.clientWidth, height = container.clientHeight;
+  if (!width || !height) return;
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
+  renderer.setSize(width, height);
+}
+const stageObserver = new ResizeObserver(resizeStage);
+stageObserver.observe(container);
+window.addEventListener('resize', resizeStage);
+resizeStage();
+window.addEventListener('pagehide', e => {
+  if (e.persisted) return;
+  disposed = true;
+  stageObserver.disconnect(); controls.dispose(); audio.dispose();
+  const geometries = new Set(), materials = new Set(), textures = new Set();
+  scene.traverse(o => {
+    if (o.isInstancedMesh) o.dispose();
+    if (o.geometry) geometries.add(o.geometry);
+    if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => materials.add(m));
+  });
+  materials.forEach(m => { Object.values(m).forEach(v => { if (v?.isTexture) textures.add(v); }); m.dispose(); });
+  textures.forEach(t => t.dispose()); geometries.forEach(g => g.dispose());
+  disposeGeometryCaches(); dirLight.shadow.map?.dispose(); renderer.dispose();
 });
 
 // Remover loader al completar inicialización
@@ -1227,4 +1333,14 @@ setTimeout(() => {
   showToast('🏙️ Ciudad LEGO Iniciada', 'Bienvenido a CloudCity: Portafolio Microsoft Cloud en tiempo real.', '#1E7BD8');
 }, 600);
 
+document.body.classList.add('no-detail');
+renderFleetList();
 animate();
+
+const fleetToggle = document.getElementById('fleet-toggle');
+fleetToggle.addEventListener('click', () => {
+  const open = document.body.classList.toggle('fleet-open');
+  fleetToggle.setAttribute('aria-expanded', String(open));
+  fleetToggle.textContent = open ? 'Cerrar explorador' : 'Explorar portafolio';
+  if (open) { setMode('live'); selectEntity(null, null); }
+});
