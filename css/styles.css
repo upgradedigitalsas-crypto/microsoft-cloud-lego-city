@@ -393,3 +393,6 @@ body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tou
 #fleet-toggle { display: none !important; }
 /* Hide the lower-right client inventory card on every screen size. */
 .fleet { display: none !important; }
+
+/* Keep the city clear of the introduction card and illustrative consumption KPIs. */
+.world-guide, .kpis, .topbar .tenant { display: none !important; }
