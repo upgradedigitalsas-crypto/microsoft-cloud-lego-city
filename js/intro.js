@@ -3,7 +3,7 @@ const overlay=document.getElementById('loader'),canvas=document.getElementById('
 const stage=document.getElementById('intro-stage'),caption=document.getElementById('intro-caption'),skip=document.getElementById('intro-skip');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
 let w=0,h=0,raf=0,film=null,started=0,ready=false,failed=false,closed=false,skipped=reduce.matches,loading=null;
-const stars=Array.from({length:1200},(_,i)=>({x:((i*73)%151)/151,y:((i*47)%149)/149,phase:i*.7}));
+const stars=Array.from({length:1200},()=>({x:Math.random(),y:Math.random(),phase:Math.random()*Math.PI*2}));
 
 function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);}
 resize();window.addEventListener('resize',resize);
