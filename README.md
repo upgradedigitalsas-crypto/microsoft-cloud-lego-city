@@ -62,3 +62,40 @@ Al ser una aplicación web estática (Vanilla JS + ES Modules + Three.js via CDN
 2. En **Build and deployment > Source**, selecciona **Deploy from a branch**.
 3. Selecciona la rama `main` y la carpeta `/ (root)`.
 4. Haz clic en **Save**. ¡Tu ciudad 3D estará en línea en un minuto!
+
+### Auditoría y mejoras (octubre de 2026)
+
+La ciudad LEGO representa el **portafolio Microsoft Cloud**: sus edificios,
+capas y relaciones son la navegación principal. Los vehículos ilustran flujos
+de valor; el seguimiento logístico aparece al seleccionar un camión.
+
+- Selección con coordenadas CSS del canvas, compatible con Retina y resize,
+  ordenada por distancia para respetar edificios que ocultan vehículos.
+- Reservas exclusivas de muelles con posiciones auxiliares en picos de tráfico;
+  corrección de suscripciones de eventos y retorno exacto de drones.
+- Studs instanciados por propietario, marcas viales instanciadas y ladrillos
+  estáticos agrupados por material. Los grupos animados conservan sus movimientos.
+- Minimapa limitado a 12 actualizaciones por segundo; se omite cuando está oculto.
+- Sonido de ensamble sintetizado, desactivado al iniciar, con botón en la barra.
+- Filtros Seguridad, Datos / OneLake y Licenciamiento; restauración de colores
+  sin crear nuevos materiales al cambiar de capa.
+- En móvil: un dedo rota y dos dedos permiten zoom/desplazamiento. Drawer,
+  detalle y explorador se muestran por separado con área de ciudad disponible.
+- Optimización y E3/E5 permiten editar valores y cliente, e imprimir un resumen
+  o guardarlo como PDF desde el diálogo del navegador. Las cifras son escenarios
+  ilustrativos, no cotizaciones oficiales; MACC se presenta como compromiso y
+  no como descuento automático.
+
+### Verificación sin instalar dependencias
+
+Inicia el servidor estático descrito arriba y abre `tests/regression.html`.
+La página comprueba picking con offset/resize, eventos, 20 minutos de simulación
+(24.000 pasos), muelles exclusivos, entregas de toda la flota, regreso de drones,
+crecimiento de escena/historial y cálculos de propuestas. También muestra draw
+calls y triángulos en una cámara fija sin sombras. No requiere npm.
+
+La revisión de esta entrega pasó esas pruebas y cambios rápidos entre los nueve
+modos sin mensajes de advertencia/error en la consola del navegador integrado.
+Se revisaron escritorio y un viewport de teléfono de 390 × 844. La última prueba
+registró 1.357 draw calls sin sombras; esa cifra no equivale a una garantía de
+60 FPS. Sigue pendiente medir FPS y gestos en hardware iPad/Safari y móviles reales.
