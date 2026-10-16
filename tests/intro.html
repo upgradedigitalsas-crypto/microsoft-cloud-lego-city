@@ -1,0 +1,9 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ITSE · Revisión de introducción</title><script type="importmap">{"imports":{"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/","three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script><style>body{margin:0;background:#05040c;color:white;font:14px Arial}#scene{position:absolute;inset:0}nav{position:absolute;bottom:20px;left:20px;z-index:2;display:flex;gap:12px}button{padding:12px;background:#5900ff;color:white;border:1px solid #79f6f5;border-radius:6px}#result{position:absolute;top:15px;left:20px}</style></head><body><div id="scene"></div><p id="result">Cargando…</p><nav><button data-time="2">Caminata</button><button data-time="6.8">Saludo ITSE</button><button data-time="10">Despegue</button><button id="dispose">Liberar escena</button></nav><script type="module">
+import {createIntroScene} from './js/intro-scene.js';
+const stage=document.querySelector('#scene');const film=createIntroScene(stage);let time=6.8,frame=0;
+const result=document.querySelector('#result');
+function render(){film.render(time);frame=requestAnimationFrame(render);}render();
+result.textContent='PASS · Escena creada; revisa caminata, saludo y vuelo';
+document.querySelectorAll('[data-time]').forEach(b=>b.onclick=()=>{time=Number(b.dataset.time);result.textContent=b.textContent;});
+document.querySelector('#dispose').onclick=()=>{cancelAnimationFrame(frame);film.dispose();result.textContent=stage.children.length===0?'PASS · Renderer retirado después de dispose':'FAIL';};
+</script></body></html>

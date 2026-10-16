@@ -7,35 +7,37 @@
   <meta name="description" content="Arquitectura Estratégica del Portafolio Microsoft Cloud y Modelo As-a-Service: ciudad LEGO 3D interactiva con la operación en tiempo real." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-  <link rel="stylesheet" href="css/styles.css?v=20261016-night-lights-1" />
+  <link rel="stylesheet" href="css/styles.css?v=20261016-cinematic-1" />
   <script type="importmap">
   {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
     "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-    "./js/night-lighting.js": "./js/night-lighting.js?v=20261016-night-lights-1",
-    "./js/airport.js": "./js/airport.js?v=20261016-night-lights-1",
-    "./js/security-life.js": "./js/security-life.js?v=20261016-night-lights-1",
-    "./js/audio.js": "./js/audio.js?v=20261016-night-lights-1",
-    "./js/beach.js": "./js/beach.js?v=20261016-night-lights-1",
-    "./js/city.js": "./js/city.js?v=20261016-night-lights-1",
-    "./js/customers.js": "./js/customers.js?v=20261016-night-lights-1",
-    "./js/data.js": "./js/data.js?v=20261016-night-lights-1",
-    "./js/ecosystem.js": "./js/ecosystem.js?v=20261016-night-lights-1",
-    "./js/executive.js": "./js/executive.js?v=20261016-night-lights-1",
-    "./js/landscape.js": "./js/landscape.js?v=20261016-night-lights-1",
-    "./js/lego.js": "./js/lego.js?v=20261016-night-lights-1",
-    "./js/main.js": "./js/main.js?v=20261016-night-lights-1",
-    "./js/picking.js": "./js/picking.js?v=20261016-night-lights-1",
-    "./js/proposal.js": "./js/proposal.js?v=20261016-night-lights-1",
-    "./js/sim.js": "./js/sim.js?v=20261016-night-lights-1",
-    "./js/terrain.js": "./js/terrain.js?v=20261016-night-lights-1",
-    "./js/urban.js": "./js/urban.js?v=20261016-night-lights-1"
+    "./js/intro.js": "./js/intro.js?v=20261016-cinematic-1",
+    "./js/intro-scene.js": "./js/intro-scene.js?v=20261016-cinematic-1",
+    "./js/night-lighting.js": "./js/night-lighting.js?v=20261016-cinematic-1",
+    "./js/airport.js": "./js/airport.js?v=20261016-cinematic-1",
+    "./js/security-life.js": "./js/security-life.js?v=20261016-cinematic-1",
+    "./js/audio.js": "./js/audio.js?v=20261016-cinematic-1",
+    "./js/beach.js": "./js/beach.js?v=20261016-cinematic-1",
+    "./js/city.js": "./js/city.js?v=20261016-cinematic-1",
+    "./js/customers.js": "./js/customers.js?v=20261016-cinematic-1",
+    "./js/data.js": "./js/data.js?v=20261016-cinematic-1",
+    "./js/ecosystem.js": "./js/ecosystem.js?v=20261016-cinematic-1",
+    "./js/executive.js": "./js/executive.js?v=20261016-cinematic-1",
+    "./js/landscape.js": "./js/landscape.js?v=20261016-cinematic-1",
+    "./js/lego.js": "./js/lego.js?v=20261016-cinematic-1",
+    "./js/main.js": "./js/main.js?v=20261016-cinematic-1",
+    "./js/picking.js": "./js/picking.js?v=20261016-cinematic-1",
+    "./js/proposal.js": "./js/proposal.js?v=20261016-cinematic-1",
+    "./js/sim.js": "./js/sim.js?v=20261016-cinematic-1",
+    "./js/terrain.js": "./js/terrain.js?v=20261016-cinematic-1",
+    "./js/urban.js": "./js/urban.js?v=20261016-cinematic-1"
   }
 }
   </script>
 </head>
-<body>
+<body class="intro-active">
   <div id="app">
     <div id="stage"></div>
 
@@ -176,12 +178,16 @@
     </section>
     <div class="toasts" id="toasts"></div>
 
-    <div class="loader" id="loader">
-      <div class="loader-bricks"><i></i><i></i><i></i><i></i></div>
-      <p>Ensamblando la ciudad LEGO…</p>
-    </div>
+    <section class="loader cinematic-intro" id="loader" aria-label="Bienvenida a ITSE" data-phase="arrival">
+      <canvas id="intro-fx" aria-hidden="true"></canvas>
+      <div id="intro-stage" aria-hidden="true"></div>
+      <div id="intro-brand"><img src="assets/itse-logo.png" alt="ITSE · IT Solution Experts" /><span>UN MUNDO DE POSIBILIDADES</span></div>
+      <p id="intro-caption" role="status" aria-live="polite">Cada gran viaje empieza con una conexión.</p>
+      <button id="intro-skip" type="button">Omitir introducción →</button>
+      <noscript>Activa JavaScript para explorar la ciudad LEGO.</noscript>
+    </section>
   </div>
 
-  <script type="module" src="js/main.js?v=20261016-night-lights-1"></script>
+  <script type="module" src="js/intro.js?v=20261016-cinematic-1"></script>
 </body>
 </html>

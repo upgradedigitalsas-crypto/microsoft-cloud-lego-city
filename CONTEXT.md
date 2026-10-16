@@ -194,3 +194,14 @@ faros y pilotos, luces de navegación de drones/aviones, balizas y marcas de pis
 El botón día/noche activa/desactiva todo; las balizas parpadean reutilizando objetos.
 Se usan materiales luminosos y manchas suaves sin añadir luces con sombras por actor.
 La barra superior también usa glass con respaldo opaco para navegadores sin blur.
+
+## 11. Introducción cinematográfica ITSE
+El punto de entrada es ahora `intro.js`: partículas Canvas inmediatas, personajes
+LEGO 3D de `intro-scene.js`, saludo con camiseta ITSE, despegue, negro y túnel
+violeta/índigo/cian. La secuencia dura unos 17 segundos y permite omitirla.
+`main.js` se importa dinámicamente durante el vuelo; la ciudad no renderiza
+mientras la introducción está visible. Solo se revela tras resolver la importación.
+Movimiento reducido omite la película; errores de carga ofrecen reintentar.
+La escena introductoria tiene recursos propios y los libera al terminar.
+`tests/intro.html` permite inspeccionar caminata, saludo, vuelo y liberación.
+La referencia Sparkles se adaptó a módulos nativos, sin React, npm ni bundler.

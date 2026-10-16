@@ -1296,6 +1296,7 @@ function animate() {
   if (disposed) return;
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
+  if (document.body.classList.contains('intro-active')) return;
   const t = clock.elapsedTime;
 
   // Actualizar cámara si está en transición
@@ -1411,12 +1412,7 @@ window.addEventListener('pagehide', e => {
   disposeGeometryCaches(); dirLight.shadow.map?.dispose(); renderer.dispose();
 });
 
-// Remover loader al completar inicialización
-setTimeout(() => {
-  document.getElementById('loader')?.classList.add('done');
-  showToast('🏙️ Ciudad LEGO Iniciada', 'Bienvenido a CloudCity: Portafolio Microsoft Cloud en tiempo real.', '#1E7BD8');
-}, 600);
-
+// The intro bootstrap reveals the city only after initialization has completed.
 document.body.classList.add('no-detail');
 renderFleetList();
 animate();

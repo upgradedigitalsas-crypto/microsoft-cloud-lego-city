@@ -484,3 +484,22 @@ body.hide-labels .label-leader { display:none!important; }
 }
 body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(255,255,255,.6); }
 @supports not (backdrop-filter:blur(18px)) { .topbar.glass { background:rgba(247,251,255,.93); } }
+
+/* Cinematic welcome: one finite film, then release its renderer and overlay. */
+.loader.cinematic-intro { position:fixed;inset:0;display:block;background:#05040C;z-index:200;overflow:hidden;color:#fff; }
+#intro-fx,#intro-stage { position:absolute;inset:0;width:100%;height:100%;pointer-events:none; }
+#intro-stage { transition:opacity .5s; }
+#intro-stage canvas { display:block;width:100%;height:100%; }
+#intro-brand { position:absolute;top:10%;left:50%;transform:translateX(-50%);display:grid;justify-items:center;gap:16px;transition:opacity .6s;width:min(80%,400px); }
+#intro-brand img { width:180px;height:auto;filter:drop-shadow(0 0 28px rgba(89,0,255,.35)); }
+#intro-brand span { font-size:10px;letter-spacing:.32em;color:#BCD3F4;text-align:center; }
+.cinematic-intro #intro-caption { position:absolute;bottom:11%;left:20px;right:20px;margin:0;color:#D7E7FF;text-align:center;font:500 clamp(13px,2vw,18px)/1.6 Inter,Arial,sans-serif; }
+#intro-skip { position:absolute;right:24px;bottom:24px;padding:12px 18px;border:1px solid #55566C;border-radius:6px;color:#E8F4FF;background:rgba(255,255,255,.06);font:500 12px Inter,Arial,sans-serif;cursor:pointer; }
+#intro-skip:focus-visible { outline:2px solid #79F6F5;outline-offset:4px; }
+#intro-skip:hover { background:rgba(121,246,245,.12); }
+#intro-skip:disabled { cursor:wait;opacity:.65; }
+.intro-active .topbar,.intro-active .cam-tools { visibility:hidden; }
+.cinematic-intro[data-phase="blackout"] #intro-caption { opacity:0; }
+.cinematic-intro noscript { position:absolute;top:45%;width:100%;text-align:center; }
+@media(max-width:639px) { #intro-brand {top:15%;}#intro-brand img {width:145px;}#intro-skip {right:16px;bottom:20px;} }
+@media(prefers-reduced-motion:reduce) { .cinematic-intro,#intro-stage,#intro-brand {transition:none;} }
