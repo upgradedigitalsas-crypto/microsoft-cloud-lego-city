@@ -396,3 +396,8 @@ body.executive-tour .world-guide, body.executive-tour .fleet, body.executive-tou
 
 /* Keep the city clear of the introduction card and illustrative consumption KPIs. */
 .world-guide, .kpis, .topbar .tenant { display: none !important; }
+
+/* Original ITSE identity supplied by the user. */
+.topbar .brand { min-width: 100px; }
+.brand-logo { display:block; width:108px; height:50px; object-fit:contain; }
+@media(max-width:900px) { .brand-logo { width:88px; height:42px; } }
