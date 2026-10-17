@@ -1464,3 +1464,5 @@ function openLivingScene(kind) {
 }
 document.getElementById('cam-airport').onclick=()=>openLivingScene('airport');
 document.getElementById('cam-security').onclick=()=>openLivingScene('security');
+
+document.getElementById('cam-itse').onclick=()=>{selectEntity(null,null);flyCameraTo(new THREE.Vector3(78,63,110),new THREE.Vector3(0,26,0),1);};

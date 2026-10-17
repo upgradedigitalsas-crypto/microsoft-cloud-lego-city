@@ -77,8 +77,9 @@ export function buildNightLighting(scene, world, sim) {
   const marking=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.03,1),new THREE.MeshBasicMaterial({color:'#DDEEFF',toneMapped:false}),strips.length);
   strips.forEach(([x,z,w,d],i)=>marking.setMatrixAt(i,matrix.compose(position.set(x,1.166,z),rotation,scale.set(w,1,d))));
   airport.add(marking);marking.visible=false;roots.push(marking);
+  if(world.itseTower){bulbs(world.itseTower.group,[[0,world.itseTower.height,0]],'#FF7167',.4,true);pool(world.itseTower.group,0,1.72,8,20,12,'#FFE0A0');}
   let enabled=false;
-  const lighting={roots,blinkers,set(on){enabled=Boolean(on);roots.forEach(o=>o.visible=enabled);facades.forEach(({material,color,intensity})=>{material.emissive.copy(enabled?material.color:color);material.emissiveIntensity=enabled?Math.max(.28,intensity*.4):intensity;});},get enabled(){return enabled;}};
+  const lighting={roots,blinkers,set(on){enabled=Boolean(on);if(world.itseTower)world.itseTower.windowMaterial.emissiveIntensity=enabled?1.6:0;roots.forEach(o=>o.visible=enabled);facades.forEach(({material,color,intensity})=>{material.emissive.copy(enabled?material.color:color);material.emissiveIntensity=enabled?Math.max(.28,intensity*.4):intensity;});},get enabled(){return enabled;}};
   world.anims.push(t=>{if(enabled)blinkers.forEach((mesh,i)=>mesh.visible=(t+i*.17)%1.6<.22);});
   return lighting;
 }

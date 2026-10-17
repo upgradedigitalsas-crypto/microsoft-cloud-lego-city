@@ -7,6 +7,7 @@ import { buildBeach } from './beach.js';
 import { BOULEVARD, roadAccess } from './urban.js';
 import { SERVICE_ROLES } from './ecosystem.js';
 import { buildIslandTerrain } from './terrain.js';
+import { buildITSETower } from './itse-tower.js';
 import { buildLandscape } from './landscape.js';
 import { DISTRICTS, PILLARS, X_ROADS, Z_ROADS, PLATE } from './data.js';
 import {
@@ -33,6 +34,7 @@ export function buildCity(scene) {
   }
   decorate(scene, studs, world);
   buildLandscape(scene, world, studs);
+  buildITSETower(scene, world, studs);
   buildBeach(scene, world, studs);
   buildAirport(scene, world, studs);
   studs.flush(scene);

@@ -108,7 +108,7 @@ export class Simulation {
       pad.y = 1.4; // Separate marked helipads with clear vertical departure.
       g.position.copy(pad);
       this.scene.add(g);
-      this.drones.push({ id, kind: 'drone', group: g, pad, flightIndex:i, status: 'pad', dwell: 1 + i * 1.6, task: null, target: null, from: null, to: null, t: 0, dur: 1, done: 0, cruise: Math.max(...[...this.world.buildings.values()].map(b=>b.height)) + 12 + i*4, flow: { label: 'Agente Copilot', color: '#9B5CD6', type: 'agent' }, timeline: [] });
+      this.drones.push({ id, kind: 'drone', group: g, pad, flightIndex:i, status: 'pad', dwell: 1 + i * 1.6, task: null, target: null, from: null, to: null, t: 0, dur: 1, done: 0, cruise: Math.max(this.world.itseTower?.height||0,...[...this.world.buildings.values()].map(b=>b.height)) + 12 + i*4, flow: { label: 'Agente Copilot', color: '#9B5CD6', type: 'agent' }, timeline: [] });
     }
 
   }

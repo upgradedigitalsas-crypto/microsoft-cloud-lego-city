@@ -33,12 +33,12 @@ export function buildLandscape(scene, world, studs) {
     const a=i*Math.PI*2/80, x=Math.cos(a)*143,z=Math.sin(a)*113;
     if (isIslandLand(x,z) && !occupied(x,z)) voxelTree(x,z,3+(i%3));
   }
-  for (const [x,z] of [[-39,-6],[-32,30],[40,8],[0,33],[-10,-33]]) {
+  for (const [x,z] of [[-39,-6],[-32,30],[40,8],[-10,-33]]) {
     if (!occupied(x,z)) { voxelTree(x,z,3); add('#9C653F',x+4,0.9,z,3,0.35,1); add('#9C653F',x+4,1.65,z-0.5,3,1,0.25); }
   }
   // A timber data pier joins the Fabric lakehouse to OneLake.
   for(let z=20;z<=32;z+=2) add('#C4965F',24,0.8,z,5,0.5,1.9);
-  const lakeSign = new THREE.Group(); scene.add(lakeSign);
+  const lakeSign = new THREE.Group(); lakeSign.position.set(-19,0,9); scene.add(lakeSign);
   sign(lakeSign,'OneLake', {x:0,y:2.5,z:0,w:15,h:3,bg:'#126F9F',fg:'#FFFFFF'});
   sign(lakeSign,'DATOS COMPARTIDOS DEL NEGOCIO', {x:0,y:0.95,z:0,w:20,h:1.4,bg:'#FFFFFF',fg:'#126F9F'});
   // Park pavilions make the shared public space legible at street level.

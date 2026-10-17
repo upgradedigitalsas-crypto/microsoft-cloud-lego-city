@@ -222,3 +222,9 @@ Cinco helipuertos independientes y vuelos vertical/crucero/descenso sustituyen
 trayectorias diagonales a través de las torres. Fachadas y ventanas tienen mayor
 luminosidad nocturna sin luces con sombras adicionales.
 El logo ITSE transparente aparece centrado en el túnel con entrada y flotación.
+
+## 13. Torre ITSE en OneLake
+`itse-tower.js` construye un rascacielos LEGO escalonado Art Deco sobre una base
+en el lago. Una pasarela elevada conecta el vestíbulo con el paseo sur. El logo
+original ITSE se representa con ladrillos 3D instanciados sin fondo en la terraza.
+Ventanas y baliza se encienden de noche; los drones vuelan por encima de la torre.

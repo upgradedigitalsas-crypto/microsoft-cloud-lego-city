@@ -21,7 +21,7 @@ export function buildSecurityLife(scene, world, customers) {
     const barrier=new THREE.Group();root.add(barrier);
     for(let row=0;row<3;row++)for(let col=0;col<4;col++)brick(barrier,{ctx,w:1.1,d:.35,h:.65,x:(col-1.5)*1.2,y:row*.75,color:'#79F6F5'});
     const halo=new THREE.Mesh(new THREE.CylinderGeometry(2,2,3,16,1,true),new THREE.MeshBasicMaterial({color:'#00D9BB',transparent:true,opacity:.2,depthWrite:false,side:THREE.DoubleSide}));root.add(halo);
-    const home=world.buildings.get(i===1?'compute':'defender').group.position.clone();home.y=Math.max(...[...world.buildings.values()].map(b=>b.height))+30+i*4;
+    const home=world.buildings.get(i===1?'compute':'defender').group.position.clone();home.y=Math.max(world.itseTower?.height||0,...[...world.buildings.values()].map(b=>b.height))+30+i*4;
     episodes.push({bike,guardian,barrier,halo,client,home,cycles:0});
   }
   studs.flush(root);batchStaticBricks(root);
