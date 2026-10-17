@@ -527,3 +527,9 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
   .cinematic-intro[data-phase="tunnel"] #intro-brand,
   .cinematic-intro[data-phase="tunnel"] #intro-brand img { animation:none; }
 }
+
+/* Hide district labels, leader lines and vehicle tags together. */
+.hide-city-labels #labels-3d { display:none !important; }
+.topbar #labels-toggle {white-space:nowrap;background:rgba(255,255,255,.8);color:#0F172A;border:1px solid #CBD5E1;padding:0 10px;}
+.topbar #labels-toggle[aria-pressed="true"] {background:#E6F7F7;color:#006A6A;border-color:#00A8A8;}
+@media(max-width:639px){.topbar #labels-toggle{grid-column:1/4;grid-row:3;min-height:36px;font-size:12px;}.cam-tools{top:200px;}.detail,.drawer{top:188px;}}

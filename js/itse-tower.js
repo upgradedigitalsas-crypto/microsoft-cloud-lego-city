@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { brick, roundBrick, matCache, rbox, plastic } from './lego.js';
+import { brick, roundBrick, matCache, rbox, plastic, sign } from './lego.js';
 
 // Brick-built Art Deco landmark, with the original ITSE silhouette voxelised in 3D.
 export function buildITSETower(scene, world, studs) {
@@ -42,6 +42,21 @@ export function buildITSETower(scene, world, studs) {
   }
   block({w:7,d:4,h:.45,y:.7,z:34,color:'#E9DDC1'});
   block({w:4,d:.25,h:3,x:0,z:8.06,y:1.7,color:'#5900FF',studs:false});
+  // Road from the south boulevard to a six-bay forecourt, outside OneLake.
+  block({w:7,d:24,h:.25,y:.08,z:71,color:'#617082',studs:false});
+  block({w:19,d:26,h:.25,y:.08,z:48,color:'#CFC7B7',studs:false});
+  block({w:18,d:25,h:.25,y:.12,z:48,color:'#617082',studs:false});
+  for(const x of [-3.6,3.6])block({x,z:71,w:.22,d:23,h:.05,y:.34,color:'#FFF1BE',studs:false});
+  for(let z=62;z<=80;z+=4)block({z,w:.2,d:1.8,h:.04,y:.35,color:'#FFF1BE',studs:false});
+  for(const side of [-1,1]){
+    for(const z of [38.5,45.5,52.5,59.5])block({x:side*5.6,z,w:5.8,d:.16,h:.04,y:.38,color:'#FFFFFF',studs:false});
+    for(const z of [42,49,56])block({x:side*8,z,w:.35,d:2.8,h:.2,y:.37,color:'#F2C200',studs:false});
+  }
+  // Pedestrian frontage continues directly into the existing bridge landing.
+  block({w:18,d:2.5,h:.45,y:.7,z:36,color:'#E9DDC1'});
+  block({w:4.8,d:2,h:.35,y:.35,z:38.3,color:'#E9DDC1',studs:false});
+  for(let x=-7;x<=7;x+=2)block({x,z:39.6,w:1.1,d:1.3,h:.04,y:.39,color:'#FFFFFF',studs:false});
+  sign(group,'P · ITSE',{x:8,y:3,z:36,w:4,h:1.4,bg:'#5900FF',fg:'#FFFFFF'});
   // Freestanding LEGO logo on the upper terrace: no rectangular image backing.
   const logo=new THREE.Group();logo.position.set(0,50.7,4.2);group.add(logo);
   block({w:17,d:2,h:.6,y:50.1,z:4.2,color:'#F3E7D1'});

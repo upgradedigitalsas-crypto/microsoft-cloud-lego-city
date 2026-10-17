@@ -228,3 +228,7 @@ El logo ITSE transparente aparece centrado en el túnel con entrada y flotación
 en el lago. Una pasarela elevada conecta el vestíbulo con el paseo sur. El logo
 original ITSE se representa con ladrillos 3D instanciados sin fondo en la terraza.
 Ventanas y baliza se encienden de noche; los drones vuelan por encima de la torre.
+
+La barra permite ocultar todas las etiquetas glass y sus líneas. La torre ITSE
+tiene un parqueadero de seis plazas al sur del lago, acceso pavimentado desde
+el bulevar y paso peatonal hasta la pasarela del vestíbulo.

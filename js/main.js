@@ -1466,3 +1466,10 @@ document.getElementById('cam-airport').onclick=()=>openLivingScene('airport');
 document.getElementById('cam-security').onclick=()=>openLivingScene('security');
 
 document.getElementById('cam-itse').onclick=()=>{selectEntity(null,null);flyCameraTo(new THREE.Vector3(78,63,110),new THREE.Vector3(0,26,0),1);};
+
+const labelsToggle=document.getElementById('labels-toggle');
+labelsToggle.addEventListener('click',()=>{
+  const hidden=document.body.classList.toggle('hide-city-labels');
+  labelsToggle.setAttribute('aria-pressed',String(hidden));
+  labelsToggle.textContent=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
+});
