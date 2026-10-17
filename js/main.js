@@ -1471,5 +1471,7 @@ const labelsToggle=document.getElementById('labels-toggle');
 labelsToggle.addEventListener('click',()=>{
   const hidden=document.body.classList.toggle('hide-city-labels');
   labelsToggle.setAttribute('aria-pressed',String(hidden));
-  labelsToggle.textContent=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
+  const label=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
+  labelsToggle.title=label;
+  labelsToggle.setAttribute('aria-label',label);
 });
