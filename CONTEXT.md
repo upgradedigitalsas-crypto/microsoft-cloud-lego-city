@@ -232,3 +232,6 @@ Ventanas y baliza se encienden de noche; los drones vuelan por encima de la torr
 La barra vertical de herramientas permite ocultar todas las etiquetas glass y sus líneas. La torre ITSE
 tiene un parqueadero de seis plazas al sur del lago, acceso pavimentado desde
 el bulevar y paso peatonal hasta la pasarela del vestíbulo.
+
+El encabezado oculta sonido, campana y avisos de novedades. El selector de
+capas es compacto y redondeado; las etiquetas se controlan desde la barra vertical.

@@ -1148,48 +1148,8 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Notificaciones y Toasts
-const bellBtn = document.getElementById('bell');
-const notifDropdown = document.getElementById('notif');
-const bellBadge = document.getElementById('bell-badge');
-const toastsContainer = document.getElementById('toasts');
-
-bellBtn.addEventListener('click', () => {
-  notifDropdown.classList.toggle('open');
-  bellBadge.textContent = '0';
-  bellBadge.dataset.n = '0';
-});
-
-sim.on('event', (ev) => {
-  // Añadir a notificaciones
-  const item = document.createElement('div');
-  item.className = 'notif-item';
-  item.innerHTML = `
-    <div style="font-size:16px;">${ev.cat === 'security' ? '🛡️' : ev.cat === 'commercial' ? '📜' : ev.cat === 'data' ? '💾' : '✦'}</div>
-    <div><p>${ev.text}</p><small>${new Date(ev.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small></div>
-  `;
-  notifDropdown.prepend(item);
-  if (notifDropdown.children.length > 20) notifDropdown.removeChild(notifDropdown.lastChild);
-
-  const cur = parseInt(bellBadge.dataset.n || '0', 10) + 1;
-  bellBadge.textContent = cur;
-  bellBadge.dataset.n = cur;
-
-  // Mostrar Toast
-  showToast(ev.cat === 'security' ? '🛡️ Seguridad en Vivo' : '⚡ Operación Cloud', ev.text, ev.cat === 'security' ? '#2FA05A' : '#2563EB');
-});
-
-function showToast(title, msg, color = '#2563EB') {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.style.setProperty('--c', color);
-  t.innerHTML = `<div><b style="display:block;margin-bottom:2px;">${title}</b><span>${msg}</span></div>`;
-  toastsContainer.appendChild(t);
-  setTimeout(() => {
-    t.classList.add('out');
-    setTimeout(() => t.remove(), 400);
-  }, 4200);
-}
+// News UI is hidden; do not allocate notification cards or toast timers.
+function showToast() {}
 
 // ---------------------------------------------------------------------------
 // 12. Controles de Cámara (HUD Lateral)
