@@ -1233,8 +1233,8 @@ function toggleDayNight() {
     scene.background.set('#0E1626');
     scene.fog.color.set('#0E1626');
     dirLight.color.set('#6366f1');
-    dirLight.intensity = 0.45;
-    hemiLight.color.set('#61799F');
+    dirLight.intensity = 0.65;
+    hemiLight.color.set('#8498C1');
     hemiLight.groundColor.set('#0f172a');
     world.lampMaterial.emissiveIntensity = 2.0;
   } else {

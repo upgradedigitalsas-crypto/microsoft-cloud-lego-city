@@ -6,7 +6,7 @@ export const ISLAND_STEP = 4;
 // Preserve every service lot inside an asymmetric, block-stepped coastline.
 export function isIslandLand(x, z) {
   if (Math.hypot(x - 240, z - 80) <= 48 || (x >= 150 && x <= 240 && Math.abs(z - 80) <= 12)) return true;
-  if (DISTRICTS.some(d => Math.abs(x-d.pos[0])<=20 && z>=d.pos[1]-16 && z<=d.pos[1]+27)) return true;
+  if (DISTRICTS.some(d => Math.abs(x-d.pos[0])<=20 && z>=d.pos[1]-16 && z<=d.pos[1]+33)) return true;
   if (Math.hypot((x + 76) / 28, (z - 128) / 19) < 1) return true;
   if (x >= PLATE.minX && x <= PLATE.maxX && z >= PLATE.minZ && z <= PLATE.maxZ) return true;
   const angle = Math.atan2(z / 133, x / 168);

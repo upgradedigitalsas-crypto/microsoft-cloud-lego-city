@@ -51,18 +51,19 @@ export class CustomerLife {
           person.group.position.copy(e.host).add(b.group.position);
           person.group.rotation.y = Math.PI / 2;
         } else {
-          const lane = i * 0.12;
+          // One-way promenade: entry on the right, separate exit on the left.
+          // Identical speed and evenly staggered visits preserve personal space.
           const stages = [
-            ['arriving', [[-10, e.front + 1.5], [e.x - 0.8, e.front + 1.5], [e.x - 0.8, e.z + 1.7]]],
-            ['entering', [[e.x - 0.8, e.z + 1.7], [e.x - 0.8, e.front - 4.1], [-3.7 + i * 1.5, e.front - 4.1]]],
-            ['using', [[-3.7 + i * 1.5, e.front - 4.1], [-3.7 + i * 1.5, e.front - 4.1]]],
-            ['leaving', [[-3.7 + i * 1.5, e.front - 4.1], [e.x + 0.8, e.front - 4.1], [e.x + 0.8, e.front + 2.5]]],
-            ['strolling', [[e.x + 0.8, e.front + 2.5], [-10, e.front + 2.5], [-10, e.front + 1.5]]],
+            ['arriving', [[-10.5,14.5],[5.5,14.5]]],
+            ['entering', [[5.5,14.5],[5.5,9.6],[-3,9.6]]],
+            ['using', [[-3,9.6],[-3,9.6]]],
+            ['leaving', [[-3,9.6],[-10.5,9.6],[-10.5,14.5]]],
+            ['strolling', [[-10.5,14.5],[-10.5,14.5]]],
           ];
           let elapsed = 0;
           person.stages = stages.map(([status, points]) => {
-            const route = path(points.map(([x, z]) => [x, z + lane]));
-            const duration = status === 'using' ? 4.5 + i * 0.7 : route.length / (1.7 + i * 0.09);
+            const route = path(points);
+            const duration = status === 'using' ? 3 : Math.max(.01, route.length / 1.7);
             const stage = { status, route, duration, start: elapsed }; elapsed += duration;
             return stage;
           });

@@ -43,6 +43,7 @@ export class Simulation {
       marketplace: 186000,
     };
     this.busy = new Map(); // ocupación de muelles
+    this.trafficClock = 0;
     this.spawn();
     this.nextEvent = 3;
     this.customers = new CustomerLife(scene, world);
@@ -72,7 +73,7 @@ export class Simulation {
           id, kind: 'truck', flow, group: g, driver: DRIVERS[n++ % DRIVERS.length],
           customer: rand(CUSTOMERS), status: 'loading', speed: 0, heading: 0,
           path: null, s: 0, total: 0, dwell: Math.random() * 4, timeline: [],
-          location: rand(flow.from), job: null, slot: null,
+          location: flow.from.find(id => (this.busy.get(id)?.size || 0) < 3) || rand(flow.from), job: null, slot: null,
         };
         g.traverse(o => { if (o.isMesh) o.userData.entityId = id; });
         this.scene.add(g);
@@ -82,27 +83,20 @@ export class Simulation {
         const slot = this.slotFor(v.job.from, v);
         g.position.copy(slot);
         v.slot = slot;
-        g.rotation.y = this.B(v.job.from).dock.z > this.B(v.job.from).road.z ? Math.PI / 2 : -Math.PI / 2;
+        g.rotation.y = Math.PI / 2;
         v.heading = g.rotation.y;
       }
     }
-    // Patrullas Defender (anillo perimetral)
-    const ringA = [...BOULEVARD, BOULEVARD[0]];
-    const reverse = [...BOULEVARD].reverse();
-    const ringB = [...reverse, reverse[0]];
-    [ringA, ringB].forEach((ring, i) => {
-      const g = patrolCar();
-      const id = `DEF-${700 + i * 11}`;
-      g.traverse(o => { if (o.isMesh) o.userData.entityId = id; });
-      this.scene.add(g);
-      const pts = offsetLane(ring.map(([x, z]) => new THREE.Vector3(x, 0, z)), true);
-      const v = {
-        id, kind: 'patrol', group: g, driver: i ? 'Unidad Bravo' : 'Unidad Alfa', status: 'patrol',
-        path: polyline(pts), s: Math.random() * 100, speed: 11, heading: 0, timeline: [],
-        flow: { label: 'Patrulla Defender XDR', color: '#2FA05A', type: 'patrol' }, loop: true, scanned: 0,
-      };
-      this.vehicles.push(v);
-    });
+    // Patrols use marked bays and the same traffic permissions as deliveries.
+    for (let i=0;i<2;i++) {
+      const id=`DEF-${700+i*11}`,g=patrolCar();
+      g.traverse(o=>{if(o.isMesh)o.userData.entityId=id;});this.scene.add(g);
+      const v={id,kind:'patrol',group:g,driver:i?'Unidad Bravo':'Unidad Alfa',
+        status:'loading',speed:0,heading:Math.PI/2,timeline:[],location:'secCopilot',
+        dwell:8+i*8,flow:{label:'Patrulla Defender XDR',color:'#2FA05A',type:'patrol',from:['secCopilot'],to:['sentinel']},scanned:0};
+      this.vehicles.push(v);this.newJob(v,true);
+      v.slot=this.slotFor('secCopilot',v);g.position.copy(v.slot);g.rotation.y=v.heading;
+    }
     // Drones Copilot
     const tower = this.B('copilot');
     const pads = tower.api.pads || [new THREE.Vector3()];
@@ -111,10 +105,10 @@ export class Simulation {
       const id = `CPL-${randi(10, 99)}${i}`;
       g.traverse(o => { if (o.isMesh) o.userData.entityId = id; });
       const pad = pads[i % pads.length].clone().add(tower.group.position);
-      pad.y = 1.4 + Math.floor(i / pads.length) * 1.5;
+      pad.y = 1.4; // Separate marked helipads with clear vertical departure.
       g.position.copy(pad);
       this.scene.add(g);
-      this.drones.push({ id, kind: 'drone', group: g, pad, status: 'pad', dwell: 1 + i * 1.6, task: null, target: null, from: null, to: null, t: 0, dur: 1, done: 0, flow: { label: 'Agente Copilot', color: '#9B5CD6', type: 'agent' }, timeline: [] });
+      this.drones.push({ id, kind: 'drone', group: g, pad, flightIndex:i, status: 'pad', dwell: 1 + i * 1.6, task: null, target: null, from: null, to: null, t: 0, dur: 1, done: 0, cruise: Math.max(...[...this.world.buildings.values()].map(b=>b.height)) + 12 + i*4, flow: { label: 'Agente Copilot', color: '#9B5CD6', type: 'agent' }, timeline: [] });
     }
 
   }
@@ -124,13 +118,12 @@ export class Simulation {
     const busy = this.busy.get(bid) || new Set();
     this.busy.set(bid, busy);
     let idx = [1, 0, 2].find(i => !busy.has(i));
-    // Overflow bays keep reservations exclusive even during peak arrivals.
-    if (idx === undefined) { idx = 3; while (busy.has(idx)) idx++; }
+    if (idx === undefined) return null;
     busy.add(idx);
     v._slotRef = { bid, idx };
-    return idx < b.slots.length ? b.slots[idx].clone()
-      : b.dock.clone().add(new THREE.Vector3((idx - 2) * 5, 0, b.dock.z > b.road.z ? 5 : -5));
+    return b.slots[idx].clone();
   }
+
   releaseSlot(v) {
     if (!v._slotRef) return;
     this.busy.get(v._slotRef.bid)?.delete(v._slotRef.idx);
@@ -138,6 +131,7 @@ export class Simulation {
   }
 
   newJob(v, initial = false) {
+    v.pendingRoute=null;v.waitingSince=null;v.routeCache=null;
     const f = v.flow;
     const from = f.from.includes(v.location) ? v.location : rand(f.from);
     let to = rand(f.to.filter(t => t !== from));
@@ -153,9 +147,9 @@ export class Simulation {
       { label: 'Aplicado', t: null },
     ];
     if (!initial && v.location !== from) {
-      this.releaseSlot(v);
-      v.status = 'reposition';
-      this.setPath(v, v.location, from);
+      v.status = 'loading';
+      v.dwell = 0;
+      v.repositionTo = from;
     } else {
       v.status = 'loading';
       v.dwell = initial ? v.dwell + 2 : 3 + Math.random() * 2;
@@ -163,25 +157,44 @@ export class Simulation {
   }
 
   setPath(v, fromId, toId) {
-    this.releaseSlot(v);
-    const A = this.B(fromId), Bb = this.B(toId);
-    const road = streetRoute(A.roadIndex, Bb.roadIndex).map(([x,z]) => new THREE.Vector3(x,0,z));
-    const clean = dedupe(road);
-    const lane = clean.length > 1 ? offsetLane(clean, false) : clean;
-    const start = v.group.position.clone(); start.y = 0;
-    const end = this.slotFor(toId, v);
-    v.slot = end;
-    // Aproximación al carril
-    const pts = [start, ...A.driveway.slice().reverse(), ...lane, ...Bb.driveway, end];
-    v.path = polyline(dedupe(pts));
-    v.s = 0;
-    v.dest = toId;
+    const A=this.B(fromId),B=this.B(toId);
+    const available=[1,0,2].find(i=>!this.busy.get(toId)?.has(i));
+    if(available===undefined){v.blockedBy='bay:'+toId;return false;}
+    const end=B.slots[available].clone(),start=v.group.position.clone();start.y=0;
+    const road=streetRoute(A.roadIndex,B.roadIndex).map(([x,z])=>new THREE.Vector3(x,0,z));
+    const lane=road.length>1?offsetLane(road,false):road;
+    const pts=dedupe([start,new THREE.Vector3(start.x,0,A.dock.z),...A.driveway.slice().reverse(),
+      ...lane,...B.driveway,new THREE.Vector3(end.x,0,B.dock.z),end]);
+    const cacheKey=`${fromId}:${toId}:${available}`;
+    const route=v.routeCache?.key===cacheKey?v.routeCache.route:polyline(pts);
+    route.cells ??= routeCells(route);
+    v.routeCache={key:cacheKey,route};v.pendingRoute=route;
+    // Acquire the complete shared corridor before leaving a bay. Never ghost through traffic.
+    for(const other of this.vehicles){
+      if(other===v)continue;
+      if(other.pendingRoute && other.waitingSince!=null && other.waitingSince<v.waitingSince
+        && other.blockedBy?.startsWith('route:') && [...route.cells].some(key=>other.pendingRoute.cells.has(key))){
+        v.blockedBy='queue:'+other.id;return false;
+      }
+      if(other.activeRoute){if([...route.cells].some(key=>other.path.cells.has(key))){v.blockedBy='route:'+other.id;return false;}}
+      else if(routeHitsParked(route,other)){v.blockedBy='parked:'+other.id;return false;}
+    }
+    const old=v._slotRef;
+    v.slot=this.slotFor(toId,v);
+    if(!v.slot)return false;
+    v.departureSlot=old; // Keep the origin occupied until the manoeuvre is complete.
+    v.waitingSince=null;v.pendingRoute=null;v.blockedBy=null;v.path=route;v.s=0;v.dest=toId;v.activeRoute=true;
+    return true;
   }
 
   // ------------------------------------------------------------------ update
   update(dt, t) {
     dt = Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, 0.05) : 0;
-    for (const v of this.vehicles) v.kind === 'patrol' ? this.updatePatrol(v, dt, t) : this.updateTruck(v, dt, t);
+    this.trafficClock += dt;
+    for (const v of [...this.vehicles].sort((a,b)=>(a.waitingSince??Infinity)-(b.waitingSince??Infinity))) {
+      this.updateTruck(v,dt,t);
+      if(v.kind==='patrol')this.updatePatrol(v,dt,t);
+    }
     for (const d of this.drones) this.updateDrone(d, dt, t);
     this.customers.advance(dt, t);
 
@@ -217,9 +230,22 @@ export class Simulation {
         if (v.status === 'loading') {
           v.timeline[1].t = Date.now();
           v.timeline[2].t = Date.now();
-          v.status = 'transit';
-          this.releaseSlot(v);
-          this.setPath(v, v.job.from, v.job.to);
+          v.waitingSince ??= this.trafficClock;
+          if(t < (v.retryAt || 0))return;
+          v.retryAt=t+.6;
+          if(v.repositionTo && (this.busy.get(v.repositionTo)?.size||0)>=3){
+            const free=v.flow.from.find(id=>id!==v.location&&(this.busy.get(id)?.size||0)<3);
+            if(free){v.repositionTo=free;v.job.from=free;}
+          }
+          if(!v.repositionTo && (this.busy.get(v.job.to)?.size||0)>=3){
+            const free=v.flow.to.find(id=>id!==v.location&&(this.busy.get(id)?.size||0)<3);
+            if(free)v.job.to=free;
+          }
+          const destination=v.repositionTo || v.job.to;
+          if(this.setPath(v,v.location,destination)){
+            v.status=v.repositionTo?'reposition':'transit';v.repositionTo=null;
+          }
+
         } else {
           v.timeline[4].t = Date.now();
           this.applyDelivery(v);
@@ -234,32 +260,22 @@ export class Simulation {
     let limit = target;
     const remaining = v.path.total - v.s;
     if (remaining < 6) limit = Math.max(2, target * remaining / 6);
-    // Evitar colisiones simples
-    const forwardX = Math.cos(v.heading), forwardZ = -Math.sin(v.heading);
-    if (!(v.ghost > 0)) for (const o of this.vehicles) {
-      if (o === v) continue;
-      const dx = o.group.position.x - g.position.x, dz = o.group.position.z - g.position.z;
-      const ahead = dx * forwardX + dz * forwardZ;
-      if (ahead > 0 && ahead < 6.5) {
-        const lateral = Math.abs(dx * forwardZ - dz * forwardX);
-        if (lateral < 1.3) limit = Math.min(limit, Math.max(0, (ahead - 4.2) * 2));
-      }
-    }
-    v.ghost = (v.ghost || 0) - dt;
-    v.stuck = limit < 0.3 ? (v.stuck || 0) + dt : 0;
-    if (v.stuck > 2.5) { v.ghost = 1.5; v.stuck = 0; }
-    v.speed = THREE.MathUtils.lerp(v.speed, limit, Math.min(1, dt * 3));
+    // Exclusive route reservations include the swept width of turns and parked actors.
+    v.speed = Math.min(limit, THREE.MathUtils.lerp(v.speed, limit, Math.min(1, dt * 3)));
     v.s = Math.min(v.path.total, v.s + v.speed * dt);
     const { p, dir } = samplePath(v.path, v.s);
     g.position.set(p.x, 0.32, p.z);
     if (dir.lengthSq() > 0) {
       const h = Math.atan2(-dir.z, dir.x);
-      v.heading = lerpAngle(v.heading, h, Math.min(1, dt * 8));
+      v.heading = v.s < v.path.cum[1] ? Math.PI / 2 : h;
       g.rotation.y = v.heading;
     }
     g.userData.wheels.forEach(w => { w.rotation.y += v.speed * dt * 1.5; });
     if (v.status === 'transit' && remaining < 10) v.status = 'docking';
     if (v.s >= v.path.total - 0.01) {
+      v.activeRoute=false;v.speed=0;v.heading=Math.PI/2;g.rotation.y=v.heading;
+      if(v.departureSlot)this.busy.get(v.departureSlot.bid)?.delete(v.departureSlot.idx);
+      v.departureSlot=null;
       if (v.status === 'reposition') {
         v.location = v.job.from;
         v.status = 'loading';
@@ -285,12 +301,6 @@ export class Simulation {
   }
 
   updatePatrol(v, dt, t) {
-    v.s = (v.s + v.speed * dt) % v.path.total;
-    const { p, dir } = samplePath(v.path, v.s);
-    v.group.position.set(p.x, 0.32, p.z);
-    const h = Math.atan2(-dir.z, dir.x);
-    v.heading = lerpAngle(v.heading, h, Math.min(1, dt * 8));
-    v.group.rotation.y = v.heading;
     const [r, b] = v.group.userData.lights;
     const on = Math.sin(t * 10) > 0;
     r.emissiveIntensity = on ? 2 : 0.1; b.emissiveIntensity = on ? 0.1 : 2;
@@ -310,7 +320,7 @@ export class Simulation {
         d.task = rand(COPILOT_TASKS[d.target]);
         const b = this.B(d.target);
         d.from = g.position.clone();
-        d.to = b.group.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, b.height + 4, (Math.random() - 0.5) * 3));
+        d.to = b.group.position.clone().add(new THREE.Vector3(-8 + d.flightIndex * 4, b.height + 5, 0));
         d.t = 0; d.dur = d.from.distanceTo(d.to) / 14 + 0.5;
         d.status = 'flying';
         d.timeline = [{ label: 'Prompt recibido', t: Date.now() }, { label: 'Despegue', t: Date.now() }, { label: 'Ejecutando', t: null }, { label: 'Resultado', t: null }, { label: 'En base', t: null }];
@@ -319,8 +329,10 @@ export class Simulation {
       d.t += dt / d.dur;
       const k = Math.min(1, d.t);
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-      g.position.lerpVectors(d.from, d.to, e);
-      g.position.y += Math.sin(k * Math.PI) * 8;
+      // Vertical take-off, cruise above every roof, then vertical descent.
+      if(k<.2)g.position.copy(d.from).setY(THREE.MathUtils.lerp(d.from.y,d.cruise,k/.2));
+      else if(k<.8){g.position.lerpVectors(d.from,d.to,(k-.2)/.6);g.position.y=d.cruise;}
+      else g.position.copy(d.to).setY(THREE.MathUtils.lerp(d.cruise,d.to.y,(k-.8)/.2));
       g.rotation.y = Math.atan2(d.from.z - d.to.z, d.to.x - d.from.x);
       g.rotation.z = -0.25 * Math.sin(k * Math.PI);
       if (k >= 1) {
@@ -367,7 +379,7 @@ function offsetLane(pts, closed) {
     const n1 = prev ? rightN(prev, pts[i]) : null;
     const n2 = next ? rightN(pts[i], next) : null;
     let off;
-    if (n1 && n2) off = n1.distanceTo(n2) < 0.01 ? n1.clone() : n1.clone().add(n2);
+    if (n1 && n2) off = n1.distanceTo(n2) < 0.01 ? n1.clone() : n1.clone().add(n2).normalize();
     else off = (n1 || n2).clone();
     out.push(pts[i].clone().addScaledVector(off, LANE));
   }
@@ -395,4 +407,23 @@ function lerpAngle(a, b, k) {
   let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
   if (d < -Math.PI) d += Math.PI * 2;
   return a + d * k;
+}
+
+// Conservative swept corridor, computed only when requesting a trip.
+function routeCells(route){
+  const cells=new Set();
+  for(let s=0;s<=route.total+1;s+=1){const {p}=samplePath(route,Math.min(s,route.total));
+    for(let x=Math.floor((p.x-3.4)/4);x<=Math.floor((p.x+3.4)/4);x++)
+      for(let z=Math.floor((p.z-3.4)/4);z<=Math.floor((p.z+3.4)/4);z++)cells.add(`${x},${z}`);
+  }return cells;
+}
+function routeHitsParked(route,other){
+  const q=other.group.position;
+  for(let s=0;s<=route.total+1;s+=.6){const {p,dir}=samplePath(route,Math.min(s,route.total));
+    const dx=Math.abs(p.x-q.x),dz=Math.abs(p.z-q.z);
+    // All bays face north. Project the moving rectangle onto the parking axes.
+    const halfX=Math.abs(dir.x)*3+Math.abs(dir.z)*1.15;
+    const halfZ=Math.abs(dir.z)*3+Math.abs(dir.x)*1.15;
+    if(dx<halfX+1.15+.15&&dz<halfZ+(other.kind==='patrol'?2:3)+.15)return true;
+  }return false;
 }

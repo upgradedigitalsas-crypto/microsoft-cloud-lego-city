@@ -21,23 +21,24 @@ export function buildSecurityLife(scene, world, customers) {
     const barrier=new THREE.Group();root.add(barrier);
     for(let row=0;row<3;row++)for(let col=0;col<4;col++)brick(barrier,{ctx,w:1.1,d:.35,h:.65,x:(col-1.5)*1.2,y:row*.75,color:'#79F6F5'});
     const halo=new THREE.Mesh(new THREE.CylinderGeometry(2,2,3,16,1,true),new THREE.MeshBasicMaterial({color:'#00D9BB',transparent:true,opacity:.2,depthWrite:false,side:THREE.DoubleSide}));root.add(halo);
-    const home=world.buildings.get(i===1?'compute':'defender').group.position.clone();home.y=20;
+    const home=world.buildings.get(i===1?'compute':'defender').group.position.clone();home.y=Math.max(...[...world.buildings.values()].map(b=>b.height))+30+i*4;
     episodes.push({bike,guardian,barrier,halo,client,home,cycles:0});
   }
   studs.flush(root);batchStaticBricks(root);
   world.security={root,episodes};
   world.anims.push(t=>episodes.forEach((e,i)=>{
     const p=(t+i*9)%32;e.cycles=Math.floor((t+i*9)/32);
-    const target=e.client.group.position;
+    const b=world.buildings.get(e.client.district);
+    const target=b.group.position.clone().add(new THREE.Vector3(11,.55,7));
     // Approach stays on the customer's arrival forecourt; shield blocks before contact.
     const distance=p<10?14-p*.9:p<18?5:5+(p-18)*.8;
-    e.bike.position.set(target.x+distance,.4,target.z+3);
-    e.bike.rotation.y=p<18?-Math.PI/2:Math.PI/2;
+    e.bike.position.set(target.x,.4,target.z-distance);
+    e.bike.rotation.y=p<18?0:Math.PI;
     e.bike.visible=p<29;
-    e.halo.position.set(target.x,target.y+1.5,target.z);e.halo.visible=p>=8&&p<24;
-    e.barrier.position.set(target.x+3,1,target.z+2);e.barrier.rotation.y=Math.PI/2;e.barrier.visible=p>=10&&p<22;
+    e.halo.position.copy(e.client.group.position).add(new THREE.Vector3(0,1.5,0));e.halo.visible=p>=8&&p<24;
+    e.barrier.position.set(target.x,1,target.z-3);e.barrier.rotation.y=0;e.barrier.visible=p>=10&&p<22;
     const f=p<8?p/8:p<22?1:Math.max(0,1-(p-22)/10);
-    e.guardian.position.set(THREE.MathUtils.lerp(e.home.x,target.x+4,f),THREE.MathUtils.lerp(e.home.y,7,f)+Math.sin(t*3)*.25,THREE.MathUtils.lerp(e.home.z,target.z+3,f));
+    e.guardian.position.set(THREE.MathUtils.lerp(e.home.x,target.x-4,f),e.home.y+Math.sin(t*3)*.25,THREE.MathUtils.lerp(e.home.z,target.z,f));
     e.guardian.userData.rotors.forEach(r=>r.rotation.y=t*24);
     e.guardian.userData.beam.material.opacity=p>=10&&p<18?.16:0;
     e.guardian.userData.beam.material.color.set('#00D9BB');

@@ -19,7 +19,7 @@ function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=st
  const tunnel=!skipped&&t>=13,blackout=!skipped&&t>=11.8&&t<13;
  overlay.dataset.phase=failed?'error':skipped?'loading':tunnel?'tunnel':blackout?'blackout':t>=8.5?'flight':t>=5.8?'handshake':'arrival';
  stage.style.opacity=blackout||skipped?'0':'1';
- document.getElementById('intro-brand').style.opacity=blackout||tunnel?'0':'1';
+ document.getElementById('intro-brand').style.opacity=blackout?'0':'1';
  if(!tunnel&&!blackout){
    const y=film?film.lineY():h*.64;
    const width=Math.min(640,w*.9),height=160,left=(w-width)/2;

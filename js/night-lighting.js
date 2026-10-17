@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Fixed, instanced emissive fittings and soft light pools: no per-lamp shadow maps.
 export function buildNightLighting(scene, world, sim) {
-  const roots=[],blinkers=[];
+  const roots=[],blinkers=[],facades=[];
   const geometry=new THREE.SphereGeometry(1,8,6);
   const matrix=new THREE.Matrix4(),position=new THREE.Vector3(),scale=new THREE.Vector3(),rotation=new THREE.Quaternion();
   const materials=new Map();
@@ -30,7 +30,7 @@ export function buildNightLighting(scene, world, sim) {
   function windows(parent) {
     const originals=[];
     parent.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh&&o.material?.transparent&&o.material.roughness<=.1)originals.push(o);});
-    const material=new THREE.MeshBasicMaterial({color:'#B5DEFF',transparent:true,opacity:.48,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false});
+    const material=new THREE.MeshBasicMaterial({color:'#FFE7B5',transparent:true,opacity:.85,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false});
     for(const original of originals){const glow=new THREE.Mesh(original.geometry,material);glow.scale.setScalar(1.005);original.add(glow);glow.visible=false;roots.push(glow);}
     if(!originals.length)material.dispose();
   }
@@ -38,7 +38,12 @@ export function buildNightLighting(scene, world, sim) {
     windows(b.group);
     bulbs(b.group,[[0,b.height+.25,0]],'#FF6C62',.35,true);
     bulbs(b.group,[[-8,.8,13],[8,.8,13]],'#FFE5A1',.3);
-    pool(b.group,0,.32,14,24,10,'#FFE0A0');
+    pool(b.group,0,.52,12,28,16,'#FFE0A0');
+    pool(b.group,0,.34,-8,26,20,'#91CFFF');
+    for(const material of b.materials){
+      if(material.emissive && !material.transparent)facades.push({material,color:material.emissive.clone(),intensity:material.emissiveIntensity});
+    }
+
   });
   for(const v of sim.vehicles){
     const front=v.kind==='truck'?3.48:2.05,back=v.kind==='truck'?-3.5:-2.05;
@@ -73,7 +78,7 @@ export function buildNightLighting(scene, world, sim) {
   strips.forEach(([x,z,w,d],i)=>marking.setMatrixAt(i,matrix.compose(position.set(x,1.166,z),rotation,scale.set(w,1,d))));
   airport.add(marking);marking.visible=false;roots.push(marking);
   let enabled=false;
-  const lighting={roots,blinkers,set(on){enabled=Boolean(on);roots.forEach(o=>o.visible=enabled);},get enabled(){return enabled;}};
+  const lighting={roots,blinkers,set(on){enabled=Boolean(on);roots.forEach(o=>o.visible=enabled);facades.forEach(({material,color,intensity})=>{material.emissive.copy(enabled?material.color:color);material.emissiveIntensity=enabled?Math.max(.28,intensity*.4):intensity;});},get enabled(){return enabled;}};
   world.anims.push(t=>{if(enabled)blinkers.forEach((mesh,i)=>mesh.visible=(t+i*.17)%1.6<.22);});
   return lighting;
 }

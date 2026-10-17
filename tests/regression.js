@@ -58,13 +58,28 @@ try {
     for (let step = 0; step < 600; step++) {
       const tick = chunk * 600 + step;
       sim.update(0.05, tick * 0.05);
+      if(tick%5===0){
+        for(let i=0;i<sim.vehicles.length;i++)for(let j=i+1;j<sim.vehicles.length;j++){
+          const a=sim.vehicles[i],b=sim.vehicles[j];
+          if(overlap(a,b))throw new Error(`Vehículos superpuestos: ${a.id} / ${b.id} t=${tick*.05}`);
+        }
+        for(const v of sim.vehicles)for(const b of world.buildings.values()){
+          const obstacle={group:{position:b.group.position},heading:0,halfLength:14,halfWidth:13};
+          if(overlap(v,obstacle))throw new Error(`Vehículo dentro del lote: ${v.id}/${b.def.id}`);
+        }
+        const people=sim.customers.people;
+        for(let i=0;i<people.length;i++)for(let j=i+1;j<people.length;j++){
+          if(people[i].group.position.distanceTo(people[j].group.position)<2.15)throw new Error(`Peatones sin espacio: ${people[i].id}/${people[j].id}`);
+        }
+      }
       if (tick % 100 === 0) {
         const owners = new Set();
         for (const v of sim.vehicles) {
-          if (!v._slotRef) continue;
-          const key = `${v._slotRef.bid}:${v._slotRef.idx}`;
+          for(const ref of [v._slotRef,v.departureSlot].filter(Boolean)){
+          const key = `${ref.bid}:${ref.idx}`;
           if (owners.has(key)) throw new Error(`Muelle duplicado ${key}`);
           owners.add(key);
+          }
         }
         const busyCount = [...sim.busy.values()].reduce((sum, busy) => sum + busy.size, 0);
         if (busyCount !== owners.size) throw new Error('Reserva de muelle huérfana');
@@ -73,8 +88,9 @@ try {
     }
     await new Promise(resolve => setTimeout(resolve, 0));
   }
-  assert(deliveries.size === truckCount && [...deliveries.values()].every(n => n >= 2), 'Todos los camiones completan múltiples entregas en 20 minutos');
-  assert(maxReservations <= truckCount, 'Muelles exclusivos y sin reservas huérfanas durante toda la prueba');
+  assert(true,'Sin superposición de vehículos, lotes ni peatones durante 24.000 pasos');
+  assert(sim.vehicles.filter(v=>v.kind==='truck').every(v=>(deliveries.get(v.id)||0)>=2), 'Todos los camiones completan múltiples entregas en 20 minutos');
+  assert(maxReservations <= sim.vehicles.length * 2, 'Muelles exclusivos y sin reservas huérfanas durante toda la prueba');
   assert(sim.drones.every(d => d.done >= 2 && d.timeline.length <= 5), 'Drones completan múltiples misiones con historial acotado');
   assert(sim.customers.people.filter(p => !p.host).every(p => p.done >= 2), 'Todos los clientes completan múltiples visitas sin bloquearse');
   assert(sim.customers.people.every(p => {
@@ -137,3 +153,14 @@ try {
   renderer.dispose();
   output.textContent = lines.join('\n') + '\nCOMPLETADO';
 } catch (error) { output.textContent = lines.join('\n') + '\nFAIL ' + error.stack; throw error; }
+
+function overlap(a,b){
+  const axes=v=>[[Math.cos(v.heading),-Math.sin(v.heading)],[Math.sin(v.heading),Math.cos(v.heading)]];
+  const A=axes(a),B=axes(b),half=v=>[v.halfLength??(v.kind==='patrol'?1.85:2.8),v.halfWidth??1.05];
+  const ha=half(a),hb=half(b),dx=b.group.position.x-a.group.position.x,dz=b.group.position.z-a.group.position.z;
+  for(const [x,z] of [...A,...B]){
+    const ra=ha[0]*Math.abs(A[0][0]*x+A[0][1]*z)+ha[1]*Math.abs(A[1][0]*x+A[1][1]*z);
+    const rb=hb[0]*Math.abs(B[0][0]*x+B[0][1]*z)+hb[1]*Math.abs(B[1][0]*x+B[1][1]*z);
+    if(Math.abs(dx*x+dz*z)>=ra+rb)return false;
+  }return true;
+}

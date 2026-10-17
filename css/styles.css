@@ -503,3 +503,27 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
 .cinematic-intro noscript { position:absolute;top:45%;width:100%;text-align:center; }
 @media(max-width:639px) { #intro-brand {top:15%;}#intro-brand img {width:145px;}#intro-skip {right:16px;bottom:20px;} }
 @media(prefers-reduced-motion:reduce) { .cinematic-intro,#intro-stage,#intro-brand {transition:none;} }
+
+/* Transparent ITSE artwork floats in the tunnel opening. */
+.cinematic-intro[data-phase="tunnel"] #intro-brand {
+  top:50%;left:50%;transform:translate(-50%,-50%);width:min(40vw,220px);
+  background:none;pointer-events:none;animation:tunnel-logo-enter .85s ease-out both;
+}
+.cinematic-intro[data-phase="tunnel"] #intro-brand img {
+  width:100%;height:auto;background:none;
+  animation:tunnel-logo-breathe 2.8s ease-in-out .85s infinite;
+  filter:drop-shadow(0 0 12px rgba(121,246,245,.35)) drop-shadow(0 0 28px rgba(89,0,255,.65));
+}
+.cinematic-intro[data-phase="tunnel"] #intro-brand span { display:none; }
+@keyframes tunnel-logo-enter {
+  from { opacity:0;transform:translate(-50%,-50%) scale(.72);filter:blur(8px); }
+  to { opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0); }
+}
+@keyframes tunnel-logo-breathe {
+  0%,100% { transform:translateY(0) scale(1); }
+  50% { transform:translateY(-5px) scale(1.045); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .cinematic-intro[data-phase="tunnel"] #intro-brand,
+  .cinematic-intro[data-phase="tunnel"] #intro-brand img { animation:none; }
+}

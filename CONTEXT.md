@@ -211,3 +211,14 @@ El túnel usa ahora el shader del componente TunnelHero entregado por el usuario
 los dos colores cambian a ITSE; resolución usa píxeles reales del framebuffer
 para corregir Retina. Comparte renderer con la escena inicial. Las partículas
 bajo la línea se concentran en 640×160 con máscara radial y destello blanco.
+
+## 12. Circulación e iluminación revisadas
+Los accesos rodean lotes y plazas con un grafo de visibilidad. Los vehículos
+reservan un corredor completo antes de salir, esperan por antigüedad y conservan
+el muelle de origen durante la maniobra. No existe modo fantasma ni plazas
+inventadas fuera del parqueadero. Las patrullas usan el mismo control de paso.
+Los peatones siguen un paseo de un sentido con entrada y salida separadas.
+Cinco helipuertos independientes y vuelos vertical/crucero/descenso sustituyen
+trayectorias diagonales a través de las torres. Fachadas y ventanas tienen mayor
+luminosidad nocturna sin luces con sombras adicionales.
+El logo ITSE transparente aparece centrado en el túnel con entrada y flotación.

@@ -114,7 +114,7 @@ function buildDistrict(scene, def, studs) {
   const access = roadAccess(bx, bz);
   const [rx, rz] = access.point, [dx, dz] = access.dock;
   const dock = new THREE.Group(); g.add(dock);
-  tile(dock,{w:18,d:10,x:0,z:21,y:0.02,h:0.3,color:'#617082',ctx});
+  tile(dock,{w:18,d:16,x:0,z:24,y:0.02,h:0.3,color:'#617082',ctx});
   for(let i=-1;i<=1;i++) {
     tile(dock,{w:0.18,d:7,x:i*5-2.3,z:20,y:0.34,h:0.04,color:'#FFFFFF',ctx});
     tile(dock,{w:4.6,d:0.18,x:i*5,z:16.6,y:0.34,h:0.04,color:'#FFFFFF',ctx});
@@ -136,7 +136,7 @@ function buildDistrict(scene, def, studs) {
     driveway: access.driveway.map(([x,z])=>new THREE.Vector3(x,0,z)),
     roadIndex: access.index, road: new THREE.Vector3(rx, 0, rz),
     dock: new THREE.Vector3(dx, 0, dz),
-    slots: [-5, 0, 5].map(o => new THREE.Vector3(dx + o, 0, dz)),
+    slots: [-5, 0, 5].map(o => new THREE.Vector3(dx + o, 0, bz + 20.5)),
     materials: m.all(), meshes,
     size: new THREE.Vector3(res.w || 14, height, res.d || 12),
   };
@@ -208,9 +208,7 @@ const BUILDERS = {
     halo2.position.y = y + 2.2; g.add(halo2);
     // Helipuertos de drones
     const pads = [];
-    for (let i = 0; i < 4; i++) {
-      const a = i * Math.PI / 2 + Math.PI / 4;
-      const px = Math.cos(a) * 7.5, pz = Math.sin(a) * 4.6;
+    for (const [px,pz] of [[-8,-7],[-8,0],[8,-7],[8,0],[0,-9]]) {
       roundBrick(g, { r: 1.4, h: PLATE_H, x: px, z: pz, y: PLATE_H, color: '#E9DDFB', ctx, stud: false });
       pads.push(new THREE.Vector3(px, 0, pz));
     }
@@ -610,9 +608,11 @@ function buildServiceEntrance(group, ctx, width, depth) {
   const color = ctx.color, role = SERVICE_ROLES[ctx.def.id];
   // Segmented colorful rims expose the brick seams and top studs.
   for (let bx = -width / 2 + 1; bx < width / 2; bx += 2) {
-    if (Math.abs(bx - x) > 2.8) brick(group, { x: bx, y: 0.4, z: front - 0.5, w: 1.92, d: 0.9, h: 0.55, color, ctx });
+    if (Math.abs(bx - x) > 2.8 && Math.abs(bx + 10.5) > 2.3) brick(group, { x: bx, y: 0.4, z: front - 0.5, w: 1.92, d: 0.9, h: 0.55, color, ctx });
     brick(group, { x: bx, y: 0.4, z: -front + 0.5, w: 1.92, d: 0.9, h: 0.55, color, ctx });
   }
+  tile(group, {x:-10.5,y:.4,z:12,w:3.5,d:6,h:.12,color:'#F7E8C9',ctx});
+  tile(group, {x:-2.5,y:.4,z:14.5,w:19.5,d:2.8,h:.12,color:'#F7E8C9',ctx});
   // A smooth path lets articulated clients walk through without clipping studs.
   tile(group, { x: 0, y: 0.4, z: front - 4, w: width - 3, d: 3.5, h: 0.12, color: '#F7E8C9', ctx });
   tile(group, { x, y: 0.4, z: front - 0.8, w: 4.4, d: 5.8, h: 0.12, color: '#F7E8C9', ctx });
@@ -630,6 +630,6 @@ function buildServiceEntrance(group, ctx, width, depth) {
   // Output shelf links the animation to the as-a-service metaphor.
   for (let i = 0; i < 3; i++) brick(group, { x: -10.1 + i * 1.1, y: 0.4, z: front - 6.1,
     w: 0.95, d: 0.95, h: 0.85, color: i === 1 ? '#FFD12B' : color, ctx });
-  return { x, z, front, host: new THREE.Vector3(-6.5, 0.55, front - 4.1),
+  return { x, z, front, host: new THREE.Vector3(-6.5, 0.55, front - 7),
     service: new THREE.Vector3(-3.7, 0.55, front - 4.1), model: role.model };
 }
