@@ -235,3 +235,12 @@ el bulevar y paso peatonal hasta la pasarela del vestíbulo.
 
 El encabezado oculta sonido, campana y avisos de novedades. El selector de
 capas es compacto y redondeado; las etiquetas se controlan desde la barra vertical.
+
+## 14. Navegación y encabezado compacto
+`navigation.js` normaliza delta de rueda/trackpad y aplica zoom exponencial
+suavizado por tiempo. OrbitControls conserva rotación con un dedo y zoom/pan
+con dos. DPR limitado a 1.25 táctil y 1.75 escritorio para reducir trabajo GPU.
+El encabezado inicia contraído con logo y menú en todos los tamaños. En móvil
+(hasta 900px), las etiquetas inician apagadas y pueden activarse desde el HUD.
+`node tests/navigation.mjs` comprueba unidades, límites, independencia de tasa
+de eventos/fotogramas, cancelación táctil y liberación de listeners.

@@ -1,3 +1,4 @@
+import { smoothNavigation } from './navigation.js';
 // ============================================================================
 //  CloudCity: Orquestador principal 3D + UI + Simulación en tiempo real
 // ============================================================================
@@ -38,7 +39,7 @@ camera.position.copy(DEFAULT_CAM_POS);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -50,13 +51,14 @@ controls.enableDamping = true;
 controls.touches.ONE = THREE.TOUCH.ROTATE;
 controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
 controls.rotateSpeed = 0.65;
-controls.zoomSpeed = 0.8;
+controls.zoomSpeed = 1.0;
 controls.addEventListener('start', () => { state.camTarget = null; });
-controls.dampingFactor = 0.06;
+controls.dampingFactor = 0.12;
 controls.target.copy(DEFAULT_TARGET);
 controls.maxPolarAngle = Math.PI / 2.08;
 controls.minDistance = 25;
 controls.maxDistance = 600;
+const navigation=smoothNavigation(camera,controls,renderer.domElement,()=>{state.camTarget=null;});
 
 // Iluminación
 const hemiLight = new THREE.HemisphereLight('#ffffff', '#cbd5e1', 0.75);
@@ -155,6 +157,7 @@ labelsContainer.appendChild(vehicleTag);
 // 5. Animación de Cámara Suave
 // ---------------------------------------------------------------------------
 function flyCameraTo(targetPos, targetLook, duration = 1.0) {
+  navigation.cancel();
   state.camTarget = {
     startPos: camera.position.clone(),
     endPos: targetPos.clone(),
@@ -1261,6 +1264,7 @@ function animate() {
 
   // Actualizar cámara si está en transición
   updateCameraAnimation(dt);
+  navigation.update(dt);
   controls.update();
 
   // Animaciones del mundo LEGO
@@ -1350,7 +1354,7 @@ function resizeStage() {
   if (!width || !height) return;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75));
   renderer.setSize(width, height);
 }
 const stageObserver = new ResizeObserver(resizeStage);
@@ -1360,7 +1364,7 @@ resizeStage();
 window.addEventListener('pagehide', e => {
   if (e.persisted) return;
   disposed = true;
-  stageObserver.disconnect(); controls.dispose(); audio.dispose();
+  stageObserver.disconnect(); navigation.dispose(); controls.dispose(); audio.dispose();
   const geometries = new Set(), materials = new Set(), textures = new Set();
   scene.traverse(o => {
     if (o.isInstancedMesh) o.dispose();
@@ -1428,10 +1432,22 @@ document.getElementById('cam-security').onclick=()=>openLivingScene('security');
 document.getElementById('cam-itse').onclick=()=>{selectEntity(null,null);flyCameraTo(new THREE.Vector3(78,63,110),new THREE.Vector3(0,26,0),1);};
 
 const labelsToggle=document.getElementById('labels-toggle');
-labelsToggle.addEventListener('click',()=>{
-  const hidden=document.body.classList.toggle('hide-city-labels');
+function setLabelsHidden(hidden){
+  document.body.classList.toggle('hide-city-labels',hidden);
   labelsToggle.setAttribute('aria-pressed',String(hidden));
   const label=hidden?'Mostrar etiquetas':'Ocultar etiquetas';
-  labelsToggle.title=label;
-  labelsToggle.setAttribute('aria-label',label);
-});
+  labelsToggle.title=label;labelsToggle.setAttribute('aria-label',label);
+}
+setLabelsHidden(matchMedia('(max-width: 900px)').matches);
+document.body.classList.add('labels-initialized');
+labelsToggle.addEventListener('click',()=>setLabelsHidden(!document.body.classList.contains('hide-city-labels')));
+const headerToggle=document.getElementById('header-toggle'),headerOptions=document.getElementById('header-options');
+function setHeaderOpen(open){
+  headerOptions.hidden=!open;
+  headerToggle.closest('header').classList.toggle('header-collapsed',!open);
+  headerToggle.setAttribute('aria-expanded',String(open));
+  headerToggle.setAttribute('aria-label',open?'Ocultar opciones':'Mostrar opciones');
+  headerToggle.textContent=open?'✕':'☰';
+}
+headerToggle.addEventListener('click',()=>setHeaderOpen(headerOptions.hidden));
+headerToggle.closest('header').addEventListener('keydown',event=>{if(event.key==='Escape'){setHeaderOpen(false);headerToggle.focus();}});

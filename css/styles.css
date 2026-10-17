@@ -542,3 +542,21 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
   .topbar .layer-control {grid-column:1/4;justify-self:end;}
   .topbar .layer-control select {width:150px;max-width:150px;height:36px;min-height:36px;border-radius:20px;}
 }
+
+/* Logo-first disclosure works on desktop and touch screens. */
+.topbar {right:auto;max-width:calc(100% - 64px);height:auto;min-height:64px;flex-wrap:wrap;}
+.topbar .brand {flex:none;order:0;}
+.topbar .toolbar-context {display:none;}
+.topbar .header-options {display:flex;align-items:center;gap:12px;flex-wrap:wrap;order:1;}
+.topbar .header-options[hidden] {display:none !important;}
+.topbar #header-toggle {order:2;display:grid;place-items:center;width:44px;height:44px;min-height:44px;border-radius:50%;background:rgba(255,255,255,.65);font-size:18px;}
+.topbar.header-collapsed {width:auto;padding:8px 12px;gap:12px;}
+.topbar.header-collapsed .brand-logo {width:90px;height:42px;}
+@media(max-width:900px){body:not(.labels-initialized) #labels-3d{display:none;}}
+@media(max-width:639px){
+ .topbar {display:flex;left:12px;top:12px;max-width:calc(100% - 24px);padding:8px 12px;gap:10px;}
+ .topbar .brand {margin-right:auto;}.topbar #header-toggle{order:1;}
+ .topbar .header-options {order:2;flex-basis:100%;gap:8px;}
+ .topbar .layer-control {margin-left:auto;}.topbar .brand-logo{width:90px;height:42px;}
+ .topbar #executive-start {min-height:40px;}.cam-tools{top:92px;}
+}
