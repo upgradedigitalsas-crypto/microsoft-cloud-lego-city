@@ -1,0 +1,1 @@
+export const CAPTAIN_LINES=['Les habla su capitana. Bienvenidos a ITSE Cloud City.','Bajo nosotros, cada isla representa una capacidad de Microsoft para su empresa.','Productividad, datos, inteligencia artificial y seguridad.','Seleccionen un edificio para descubrir sus posibilidades.','O recorran la ciudad a pie desde el aeropuerto. Disfruten la visita.'];

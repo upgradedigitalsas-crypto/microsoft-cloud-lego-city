@@ -11,7 +11,7 @@ export function createArrival(camera,controls,audio,onFinish){
  const previous=[stage.inert,header.inert];stage.inert=true;header.inert=true;
  overlay.querySelector('button').focus({preventScroll:true});
  const caption=e=>{subtitle.textContent=e.detail;};window.addEventListener('captain-caption',caption);
- const finish=()=>{if(ended)return;ended=true;audio.spoken=true;audio.speaking=false;window.speechSynthesis?.cancel();audio.phase='city';controls.enabled=true;stage.inert=previous[0];header.inert=previous[1];overlay.remove();document.body.classList.remove('arrival-active');window.removeEventListener('captain-caption',caption);window.removeEventListener('keydown',key);onFinish();};
+ const finish=()=>{if(ended)return;ended=true;audio.stopCaptain?.();audio.spoken=true;audio.speaking=false;window.speechSynthesis?.cancel();audio.phase='city';controls.enabled=true;stage.inert=previous[0];header.inert=previous[1];overlay.remove();document.body.classList.remove('arrival-active');window.removeEventListener('captain-caption',caption);window.removeEventListener('keydown',key);onFinish();};
  const key=e=>{if(e.key==='Escape')finish();};window.addEventListener('keydown',key);overlay.querySelector('button').onclick=finish;
  audio.phase='flight';
  return {get active(){return !ended;},dispose:finish,update(dt){

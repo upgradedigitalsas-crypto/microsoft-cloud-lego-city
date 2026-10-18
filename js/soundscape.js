@@ -1,20 +1,32 @@
+import { CAPTAIN_LINES } from './captain-lines.js';
+import { loadCaptainRecording } from './captain-recording.js';
 import { BrickAudio } from './audio.js';
 // A bounded synthesized ambience: no audio downloads or per-frame audio nodes.
 class Soundscape extends BrickAudio {
  constructor(){
-  super();this.enabled=true;this.phase='intro';this.nodes=[];this.voices=[];this.spoken=false;
-  this.welcome='Les habla su capitán. Bienvenidos a ITSE Cloud City. Bajo nosotros, cada isla representa una capacidad de Microsoft para su empresa: productividad, datos, inteligencia artificial y seguridad. Seleccionen un edificio para descubrir sus posibilidades, o recorran la ciudad a pie desde el aeropuerto. Disfruten la visita.';
+  super();this.enabled=true;this.phase='intro';this.nodes=[];this.voices=[];this.spoken=false;this.recording=null;this.recordingReady=loadCaptainRecording().then(r=>{this.recording=r;}).catch(()=>{});
+  this.welcome='Les habla su capitana. Bienvenidos a ITSE Cloud City. Bajo nosotros, cada isla representa una capacidad de Microsoft para su empresa: productividad, datos, inteligencia artificial y seguridad. Seleccionen un edificio para descubrir sus posibilidades, o recorran la ciudad a pie desde el aeropuerto. Disfruten la visita.';
   this.gesture=()=>{if(this.enabled)this.unlock().then(()=>{this.start();this.speak();});};
   window.addEventListener('pointerdown',this.gesture);window.addEventListener('keydown',this.gesture);
-  this.visibility=()=>{if(document.hidden){this.context?.suspend();window.speechSynthesis?.pause();}else if(this.enabled){this.context?.resume().then(()=>{this.start();this.speak();});window.speechSynthesis?.resume();}};
+  this.visibility=()=>{if(document.hidden){this.recording?.player.pause();this.context?.suspend();window.speechSynthesis?.pause();}else if(this.enabled){this.context?.resume().then(()=>{this.start();this.speak();});if(this.speaking)this.recording?.player.play().catch(()=>{});window.speechSynthesis?.resume();}};
   document.addEventListener('visibilitychange',this.visibility);
  }
- async toggle(){const enabled=await super.toggle();if(enabled){this.start();this.speak();}else {window.speechSynthesis?.cancel();this.speaking=false;}return enabled;}
+ async toggle(){const enabled=await super.toggle();if(enabled){this.start();this.speak();}else {this.recording?.player.pause();window.speechSynthesis?.cancel();this.speaking=false;}return enabled;}
  city(){this.phase='city';this.arrived=true;this.speak();}
- get lines(){return ['Les habla su capitán. Bienvenidos a ITSE Cloud City.','Bajo nosotros, cada isla representa una capacidad de Microsoft para su empresa.','Productividad, datos, inteligencia artificial y seguridad.','Seleccionen un edificio para descubrir sus posibilidades.','O recorran la ciudad a pie desde el aeropuerto. Disfruten la visita.'];}
- speak(){
-  if(!this.arrived||this.spoken||!this.enabled||this.context?.state!=='running'||!window.speechSynthesis)return;
-  this.spoken=true;this.speaking=true;let i=0;
+ get lines(){return CAPTAIN_LINES;}
+ async speak(){
+  if(!this.arrived||this.spoken||!this.enabled||this.context?.state!=='running' )return;
+  this.spoken=true;this.speaking=true;
+  await this.recordingReady;
+  if(!this.speaking||!this.enabled)return;
+  if(this.recording){
+   const {player,captions}=this.recording;let current=-1;
+   player.ontimeupdate=()=>{const i=captions.findIndex(c=>player.currentTime>=c.start&&player.currentTime<c.end);if(i>=0&&i!==current){current=i;window.dispatchEvent(new CustomEvent('captain-caption',{detail:captions[i].text}));}};
+   player.onended=()=>{this.speaking=false;};player.onerror=()=>{this.speaking=false;};
+   try{await player.play();return;}catch{player.pause();}
+  }
+  if(!window.speechSynthesis){this.speaking=false;return;}
+  let i=0;
   const next=()=>{
    if(!this.enabled||!this.speaking)return;
    if(i>=this.lines.length){this.speaking=false;return;}
@@ -48,6 +60,7 @@ class Soundscape extends BrickAudio {
   if(!dark&&(city||this.phase==='intro')&&this.tick%2===0)this.pulse(150+Math.random()*70,.06,.08);
   if(city&&this.tick%13===0)this.pulse(320+Math.random()*180,.025,.28,'sine');
  }
- dispose(){clearInterval(this.timer);window.removeEventListener('pointerdown',this.gesture);window.removeEventListener('keydown',this.gesture);document.removeEventListener('visibilitychange',this.visibility);window.speechSynthesis?.cancel();this.nodes.forEach(n=>{try{n.stop?.();n.disconnect();}catch{}});super.dispose();}
+ stopCaptain(){this.speaking=false;this.spoken=true;this.recording?.player.pause();window.speechSynthesis?.cancel();}
+ dispose(){this.stopCaptain();clearInterval(this.timer);window.removeEventListener('pointerdown',this.gesture);window.removeEventListener('keydown',this.gesture);document.removeEventListener('visibilitychange',this.visibility);window.speechSynthesis?.cancel();this.nodes.forEach(n=>{try{n.stop?.();n.disconnect();}catch{}});super.dispose();}
 }
 export const soundscape=new Soundscape();
