@@ -607,3 +607,22 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 @media(max-width:900px){.cam-tools{max-height:calc(100dvh - 110px);}}
 
 @media(max-height:550px) and (max-width:900px){.cam-tools{max-width:calc(100vw - 16px);overflow-x:auto;overflow-y:hidden;touch-action:pan-x;}}
+
+/* Product information flyout, consistent with the Microsoft product marks. */
+.detail{font-family:'Segoe UI',Inter,Arial,sans-serif;top:92px!important;bottom:auto;max-height:calc(100dvh - 116px)!important;border:1px solid #dce3ec;background:rgba(250,252,255,.97);border-radius:16px;box-shadow:0 12px 40px #152b4926;padding:20px;overscroll-behavior:contain;}
+.detail .d-head{align-items:flex-start;gap:10px;}
+.detail .d-title{font-size:19px;line-height:1.25;margin:3px 0 6px;}
+.detail .d-ico{background:#eef3fa!important;color:#285b91!important;display:grid;place-items:center;flex-shrink:0;}
+.detail .d-ico svg{width:28px;height:28px;}
+.detail .icon-btn{display:grid;place-items:center;min-width:32px;min-height:32px;}
+.detail .icon-btn svg{width:18px;height:18px;}
+.detail .d-actions{display:flex;flex-direction:column;gap:4px;margin-left:auto;}
+.detail .product-section{margin-top:18px;}
+.detail .product-section h3{font-size:13px;color:#233952;margin:0 0 7px;font-weight:650;}
+.detail .product-section p,.detail .product-more p{font-size:13px;line-height:1.65;color:#43536a;margin:6px 0;}
+.detail .product-value{padding:14px;border-radius:10px;background:#edf4fc;border-left:3px solid #0078d4;}
+.detail .chip{background:#f0f3f8;border:1px solid #e0e6ef;color:#354962;}
+.detail .product-more{margin-top:18px;border-top:1px solid #e1e6ee;padding-top:12px;font-size:12px;color:#43607e;}
+.detail summary{cursor:pointer;}
+.detail button:focus-visible,.detail summary:focus-visible{outline:2px solid #0078d4;outline-offset:3px;}
+@media(max-width:900px){.detail{top:auto!important;bottom:max(12px,env(safe-area-inset-bottom));left:12px;right:12px;width:auto;max-height:38dvh!important;padding:16px;}body.drawer-open .detail{visibility:visible;}.detail .d-actions{flex-direction:row;}.detail .d-head{position:sticky;top:-16px;background:#fafcff;padding:8px 0;z-index:1;}}

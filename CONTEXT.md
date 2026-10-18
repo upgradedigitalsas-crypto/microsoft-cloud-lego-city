@@ -271,3 +271,5 @@ Cámara orbital: permite mirar desde abajo (ángulo polar hasta 153°), acercami
 Barra de herramientas sin scrollbar visible: conserva desplazamiento nativo con rueda, trackpad y toque. En pantallas bajas, la fila horizontal permite deslizar y convierte la rueda vertical a desplazamiento horizontal. Versión 20261017-toolbar-slide-1.
 
 HUD del recorrido compacto: sin tarjeta; cruceta circular SVG inferior izquierda y botón Salir de 104×44 inferior derecho con expansión del círculo violeta (referencia MotionButton). Zona central deja pasar gestos, safe areas y movimiento reducido soportados. Adaptación nativa sin React/Tailwind/Lottie ni dependencias. Versión 20261017-walk-hud-1.
+
+Ficha de producto al seleccionar edificios: explicación Qué es / Para qué sirve / Capacidades con datos existentes, logotipos locales y SVG en lugar de emojis. Panel no modal, cierre por Escape, vista frontal y formato inferior compacto en móvil. Sin contadores ficticios de actividad en la ficha de programa. Versión 20261017-product-popup-1.

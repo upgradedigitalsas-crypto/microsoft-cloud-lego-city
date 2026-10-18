@@ -332,11 +332,18 @@ renderer.domElement.addEventListener('pointerup', e => {
 // ---------------------------------------------------------------------------
 // 8. Paneles UI: Detalle, Tracker, Flota, Minimapa
 // ---------------------------------------------------------------------------
+const uiIcon=name=>{
+  const paths={focus:'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M9 12h6m-3-3v6',close:'m6 6 12 12M6 18 18 6',building:'M4 21V5h16v16M8 9h2m4 0h2M8 13h2m4 0h2M10 21v-4h4v4',truck:'M3 6h11v12H3zM14 10h4l3 4v4h-7M6 18v2m12-2v2',agent:'M7 7h10v12H7zM12 3v4M4 10v6m16-6v6M10 11h.1m3.9 0h.1M10 15h4',shield:'m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6'};
+  return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]||paths.building}"/></svg>`;
+};
 const detailEl = document.getElementById('detail');
 const trackerEl = document.getElementById('tracker');
+detailEl.setAttribute('role','dialog');detailEl.setAttribute('aria-label','Información del ecosistema');
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.selected&&!walk.active)selectEntity(null,null);});
 
 function renderDetail() {
   detailEl.inert = !state.selected;
+  detailEl.setAttribute('aria-hidden',String(!state.selected));
   if (!state.selected) {
     detailEl.innerHTML = '';
     return;
@@ -347,47 +354,21 @@ function renderDetail() {
   if (kind === 'district') {
     const d = data;
     const pillar = PILLARS[d.pillar];
-    const inb = sim.inbound(id);
-    const outb = sim.outbound(id);
-    const visitors = sim.customers.visitors(id);
     const serviceRole = SERVICE_ROLES[id];
     detailEl.innerHTML = `
       <div class="d-head">
-        <div class="d-ico" style="background:${pillar.color};color:${pillar.color}">🏛️</div>
-        <div>
-          <span class="d-kicker" style="color:${pillar.color}">${pillar.name}</span>
-          <div class="d-title">${d.name}</div>
-          <div class="d-sub">${d.model} · ${d.billing}</div>
-        </div>
-        <div class="d-actions">
-          <button class="icon-btn primary" title="Enfocar" id="btn-focus-d">🎯</button>
-          <button class="icon-btn" title="Cerrar" id="btn-close-d">✕</button>
-        </div>
+        <div class="d-ico product-mark">${productIcons[id]?`<img src="assets/products/${productIcons[id]}.svg" alt="" width="36" height="36">`:uiIcon('building')}</div>
+        <div><span class="d-kicker">${pillar.name}</span><h2 class="d-title" id="detail-title">${d.name}</h2><div class="d-sub">${d.model} · Microsoft Cloud</div></div>
+        <div class="d-actions"><button class="icon-btn" title="Ver de frente" aria-label="Ver edificio de frente" id="btn-focus-d">${uiIcon('focus')}</button><button class="icon-btn" title="Cerrar" aria-label="Cerrar ficha" id="btn-close-d">${uiIcon('close')}</button></div>
       </div>
-      <div class="d-status">
-        <span class="pill blue">${visitors.length} clientes LEGO</span>
-        <span class="pill green">${sim.customers.totals.get(id)} visitas completadas</span>
-        <span class="pill green">Operando</span>
-      </div>
-      <div class="customer-journey"><small>${CITY_STORIES[id][0]}</small><b>${CITY_STORIES[id][1]}</b><p>${CITY_STORIES[id][2]}</p><small>INDICADOR PARA SU EMPRESA</small><p>${CITY_STORIES[id][3]}</p></div>
-      <p class="d-desc">${d.desc}</p>
-      <div class="customer-journey"><small>LA VIDA EN ESTA ISLA</small><b>${serviceRole.host}</b>
-        <p>${serviceRole.need} → ${serviceRole.result}</p>
-        <button class="btn" id="follow-island-client">Seguir a un cliente LEGO</button></div>
-      <div class="rows">
-        <div class="row"><span>Pilar Estratégico</span><b>${pillar.name}</b></div>
-        <div class="row"><span>Taxonomía</span><b>${d.model}</b></div>
-        <div class="row"><span>Métrica Facturación</span><b>${d.billing}</b></div>
-        <div class="row"><span>Ubicación Ciudad</span><b>[${d.pos[0]}, ${d.pos[1]}]</b></div>
-      </div>
-      <div style="margin-top:12px;font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;">Servicios / Componentes</div>
-      <div class="chips">
-        ${d.items.map(it => `<span class="chip">${it}</span>`).join('')}
-      </div>
+      <section class="product-section"><h3>Qué es</h3><p>${d.desc}</p></section>
+      <section class="product-section product-value"><h3>Para qué sirve en tu empresa</h3><p>${serviceRole.need}</p><p><strong>${serviceRole.result}</strong></p></section>
+      <section class="product-section"><h3>Servicios y capacidades</h3><div class="chips">${d.items.map(it=>`<span class="chip">${it}</span>`).join('')}</div></section>
+      <details class="product-more"><summary>Ver su representación en la ciudad</summary><p>${CITY_STORIES[id][2]}</p><p>${CITY_STORIES[id][3]}</p></details>
     `;
-    document.getElementById('btn-close-d')?.addEventListener('click', () => selectEntity(null, null));
-    document.getElementById('btn-focus-d')?.addEventListener('click', () => selectEntity('district', id, true));
-    document.getElementById('follow-island-client').addEventListener('click', () => selectEntity('customer', visitors[0].id));
+    detailEl.setAttribute('aria-label',d.name);
+    document.getElementById('btn-close-d').addEventListener('click',()=>selectEntity(null,null));
+    document.getElementById('btn-focus-d').addEventListener('click',()=>selectEntity('district',id,true));
   } else if (kind === 'customer') {
     const person = data;
     const district = DISTRICTS.find(d => d.id === person.district);
@@ -396,7 +377,7 @@ function renderDetail() {
         <div class="customer-avatar" style="--shirt:${person.color}"><i></i><b></b></div>
         <div><span class="d-kicker" style="color:${person.flow.color}">${person.host ? 'ANFITRIÓN DE LA ISLA' : 'CLIENTE DEL ECOSISTEMA'}</span>
           <div class="d-title">${person.customer}</div><div class="d-sub">${person.role}</div></div>
-        <div class="d-actions"><button class="icon-btn" id="close-client" title="Cerrar">✕</button></div>
+        <div class="d-actions"><button class="icon-btn" id="close-client" title="Cerrar">${uiIcon('close')}</button></div>
       </div>
       <div class="d-status"><span class="pill blue" id="client-status">${CUSTOMER_STATES[person.status]}</span><span class="pill violet">${person.model}</span></div>
       <div class="customer-journey"><small>1 · LLEGA CON UNA NECESIDAD</small><p>${person.need}</p>
@@ -416,15 +397,15 @@ function renderDetail() {
     const etaMin = Math.ceil(rem / (v.speed || 1) / 2);
     detailEl.innerHTML = `
       <div class="d-head">
-        <div class="d-ico" style="background:${v.flow.color};color:${v.flow.color}">🚛</div>
+        <div class="d-ico" style="background:${v.flow.color};color:${v.flow.color}">${uiIcon('truck')}</div>
         <div>
           <span class="d-kicker" style="color:${v.flow.color}">${v.flow.label}</span>
           <div class="d-title">${v.id}</div>
           <div class="d-sub">${v.driver} · ${v.customer}</div>
         </div>
         <div class="d-actions">
-          <button class="icon-btn primary" title="Enfocar" id="btn-focus-v">🎯</button>
-          <button class="icon-btn" title="Cerrar" id="btn-close-v">✕</button>
+          <button class="icon-btn primary" title="Enfocar" id="btn-focus-v">${uiIcon('focus')}</button>
+          <button class="icon-btn" title="Cerrar" id="btn-close-v">${uiIcon('close')}</button>
         </div>
       </div>
       <div class="d-status">
@@ -455,15 +436,15 @@ function renderDetail() {
     const targetB = DISTRICTS.find(x => x.id === d.target)?.name || 'Central Copilot';
     detailEl.innerHTML = `
       <div class="d-head">
-        <div class="d-ico" style="background:#9B5CD6;color:#9B5CD6">🤖</div>
+        <div class="d-ico" style="background:#9B5CD6;color:#9B5CD6">${uiIcon('agent')}</div>
         <div>
           <span class="d-kicker" style="color:#9B5CD6">Agente Autónomo Copilot</span>
           <div class="d-title">${d.id}</div>
           <div class="d-sub">Asistente generativo transversal</div>
         </div>
         <div class="d-actions">
-          <button class="icon-btn primary" title="Enfocar" id="btn-focus-d">🎯</button>
-          <button class="icon-btn" title="Cerrar" id="btn-close-d">✕</button>
+          <button class="icon-btn primary" title="Enfocar" id="btn-focus-d">${uiIcon('focus')}</button>
+          <button class="icon-btn" title="Cerrar" id="btn-close-d">${uiIcon('close')}</button>
         </div>
       </div>
       <div class="d-status">
@@ -483,15 +464,15 @@ function renderDetail() {
     const p = data;
     detailEl.innerHTML = `
       <div class="d-head">
-        <div class="d-ico" style="background:#2FA05A;color:#2FA05A">🛡️</div>
+        <div class="d-ico" style="background:#2FA05A;color:#2FA05A">${uiIcon('shield')}</div>
         <div>
           <span class="d-kicker" style="color:#2FA05A">Seguridad Perimetral</span>
           <div class="d-title">${p.id}</div>
           <div class="d-sub">${p.driver} · Defender XDR</div>
         </div>
         <div class="d-actions">
-          <button class="icon-btn primary" title="Enfocar" id="btn-focus-p">🎯</button>
-          <button class="icon-btn" title="Cerrar" id="btn-close-p">✕</button>
+          <button class="icon-btn primary" title="Enfocar" id="btn-focus-p">${uiIcon('focus')}</button>
+          <button class="icon-btn" title="Cerrar" id="btn-close-p">${uiIcon('close')}</button>
         </div>
       </div>
       <div class="d-status">
