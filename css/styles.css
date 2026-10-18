@@ -561,17 +561,33 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
  .topbar #executive-start {min-height:40px;}.cam-tools{top:92px;}
 }
 
-#walk-panel {position:absolute;bottom:20px;left:20px;z-index:25;padding:14px;max-width:calc(100% - 90px);}
+/* Minimal walking HUD: the transparent wrapper never intercepts the city. */
+#walk-panel{position:absolute;inset:0;z-index:25;pointer-events:none;}
 #walk-panel[hidden]{display:none;}
-#walk-panel>div:first-child{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
-#walk-panel p{font-size:12px;margin:8px 0;}
-#walk-exit{padding:8px 12px;border-radius:20px;background:#5900ff;color:white;}
-.walk-pad{display:grid;grid-template-columns:repeat(3,48px);gap:6px;touch-action:none;user-select:none;}
-.walk-pad button{width:48px;height:48px;background:rgba(255,255,255,.9);border-radius:12px;font-size:24px;touch-action:none;}
-.walk-pad button:active{background:#DAD0FF;}.walk-pad button:first-child{grid-column:2;}.walk-pad button:nth-child(2){grid-column:1;}
+.walk-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.walk-controls{position:absolute;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));}
+.walk-hint{margin:0 0 8px;font-size:11px;color:#fff;text-shadow:0 1px 4px #152034;}
+.walk-pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:3px;user-select:none;}
+.walk-pad button{pointer-events:auto;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid #ffffff70;background:#182337b8;backdrop-filter:blur(12px);color:#fff;touch-action:none;box-shadow:0 2px 8px #13203620;transition:background .18s,transform .18s;}
+.walk-pad button svg{width:23px;height:23px;transition:transform .18s;pointer-events:none;}
+.walk-pad button:active{background:#5900ff;transform:scale(.93);}
+.walk-pad button:active svg{transform:scale(1.12);}
+.walk-pad [data-walk="forward"]{grid-area:1/2;}
+.walk-pad [data-walk="left"]{grid-area:2/1;}
+.walk-pad [data-walk="right"]{grid-area:2/3;}
+.walk-pad [data-walk="back"]{grid-area:3/2;}
+#walk-exit{pointer-events:auto;position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));width:104px;height:44px;padding:4px;border:0;border-radius:999px;background:#f5f3ff;color:#251943;box-shadow:0 3px 15px #15203424;isolation:isolate;}
+#walk-exit .exit-circle{position:absolute;inset:4px auto 4px 4px;width:36px;border-radius:999px;background:#5900ff;transition:width .45s;z-index:-1;}
+#walk-exit .exit-arrow{position:absolute;left:12px;top:12px;width:20px;height:20px;color:#fff;transition:transform .45s;}
+#walk-exit .exit-label{position:absolute;left:53px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:600;transition:color .45s;}
+#walk-exit:is(:hover,:focus-visible,:active) .exit-circle{width:calc(100% - 8px);}
+#walk-exit:is(:hover,:focus-visible,:active) .exit-arrow{transform:translateX(4px);}
+#walk-exit:is(:hover,:focus-visible,:active) .exit-label{color:#fff;}
+#walk-exit:focus-visible,.walk-pad button:focus-visible{outline:2px solid #79f6f5;outline-offset:3px;}
 .walking #labels-3d{display:none!important;}.walking .cam-tools button:not(#cam-walk):not(#cam-night){display:none;}
 #cam-walk[aria-pressed="true"]{background:#DDD0FF;color:#5900ff;}
-@media(max-width:639px){#walk-panel{left:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:10px;}#walk-panel p{max-width:260px;font-size:11px;}}
+@media(max-width:639px){.walk-hint span{display:none;}}
+@media(prefers-reduced-motion:reduce){#walk-exit span,#walk-exit svg,.walk-pad button,.walk-pad button svg{transition:none;}}
 
 /* Consistent vector toolbar icons; no font-dependent glyphs. */
 .cam-tools button{display:grid;place-items:center;flex-shrink:0;}

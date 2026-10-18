@@ -269,3 +269,5 @@ Torre ITSE incluida en picking: hover con contorno y etiqueta, clic/etiqueta/bot
 Cámara orbital: permite mirar desde abajo (ángulo polar hasta 153°), acercamiento mínimo 6 y paneo en pantalla. Botones subir/bajar trasladan cámara y objetivo 4 unidades; suelo mínimo y=1.2 fuera del modo a pie. Toolbar desplazable para mantener accesibles las herramientas en pantallas cortas. Versión 20261017-camera-height-1.
 
 Barra de herramientas sin scrollbar visible: conserva desplazamiento nativo con rueda, trackpad y toque. En pantallas bajas, la fila horizontal permite deslizar y convierte la rueda vertical a desplazamiento horizontal. Versión 20261017-toolbar-slide-1.
+
+HUD del recorrido compacto: sin tarjeta; cruceta circular SVG inferior izquierda y botón Salir de 104×44 inferior derecho con expansión del círculo violeta (referencia MotionButton). Zona central deja pasar gestos, safe areas y movimiento reducido soportados. Adaptación nativa sin React/Tailwind/Lottie ni dependencias. Versión 20261017-walk-hud-1.
