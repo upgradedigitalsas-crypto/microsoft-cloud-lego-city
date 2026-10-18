@@ -260,6 +260,11 @@ export class Simulation {
     let limit = target;
     const remaining = v.path.total - v.s;
     if (remaining < 6) limit = Math.max(2, target * remaining / 6);
+    const walker=this.world.walker;
+    if(walker?.active){
+      const ahead=samplePath(v.path,Math.min(v.path.total,v.s+3)).p;
+      if(Math.hypot(ahead.x-walker.group.position.x,ahead.z-walker.group.position.z)<5){v.speed=0;return;}
+    }
     // Exclusive route reservations include the swept width of turns and parked actors.
     v.speed = Math.min(limit, THREE.MathUtils.lerp(v.speed, limit, Math.min(1, dt * 3)));
     v.s = Math.min(v.path.total, v.s + v.speed * dt);

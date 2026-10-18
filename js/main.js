@@ -1,3 +1,4 @@
+import { createWalkMode } from './walk.js';
 import { smoothNavigation } from './navigation.js';
 // ============================================================================
 //  CloudCity: Orquestador principal 3D + UI + Simulación en tiempo real
@@ -90,6 +91,8 @@ const sim = new Simulation(scene, world);
 buildSecurityLife(scene, world, sim.customers);
 const nightLighting=buildNightLighting(scene,world,sim);
 
+const walk=createWalkMode(scene,world,sim,camera,controls,()=>{navigation.cancel();state.camTarget=null;selectEntity(null,null);});
+
 // Brackets de selección 3D
 const selectBox = brackets('#2563EB');
 selectBox.visible = false;
@@ -157,6 +160,7 @@ labelsContainer.appendChild(vehicleTag);
 // 5. Animación de Cámara Suave
 // ---------------------------------------------------------------------------
 function flyCameraTo(targetPos, targetLook, duration = 1.0) {
+  if(walk.active)walk.exit();
   navigation.cancel();
   state.camTarget = {
     startPos: camera.position.clone(),
@@ -269,6 +273,7 @@ renderer.domElement.addEventListener('pointercancel', e => { pointers.delete(e.p
 renderer.domElement.addEventListener('pointerup', e => {
   pointers.delete(e.pointerId);
   const start = tap; tap = null;
+  if(walk.active)return;
   if (!start || start.id !== e.pointerId || start.moved || pointers.size ||
       Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
   const rect = renderer.domElement.getBoundingClientRect();
@@ -1265,7 +1270,7 @@ function animate() {
   // Actualizar cámara si está en transición
   updateCameraAnimation(dt);
   navigation.update(dt);
-  controls.update();
+  if(!walk.active)controls.update();
 
   // Animaciones del mundo LEGO
   world.anims.forEach(fn => fn(t, dt));
@@ -1273,6 +1278,7 @@ function animate() {
   // Simulación logística
   sim.update(dt, t);
   sim.customers.render(t);
+  walk.update(dt);
 
   // Posicionar caja de selección si hay vehículo seleccionado
   if (state.selected && state.selected.kind !== 'district') {
@@ -1364,7 +1370,7 @@ resizeStage();
 window.addEventListener('pagehide', e => {
   if (e.persisted) return;
   disposed = true;
-  stageObserver.disconnect(); navigation.dispose(); controls.dispose(); audio.dispose();
+  stageObserver.disconnect(); navigation.dispose(); walk.dispose(); controls.dispose(); audio.dispose();
   const geometries = new Set(), materials = new Set(), textures = new Set();
   scene.traverse(o => {
     if (o.isInstancedMesh) o.dispose();

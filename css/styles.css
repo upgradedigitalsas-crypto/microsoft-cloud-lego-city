@@ -560,3 +560,15 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
  .topbar .layer-control {margin-left:auto;}.topbar .brand-logo{width:90px;height:42px;}
  .topbar #executive-start {min-height:40px;}.cam-tools{top:92px;}
 }
+
+#walk-panel {position:absolute;bottom:20px;left:20px;z-index:25;padding:14px;max-width:calc(100% - 90px);}
+#walk-panel[hidden]{display:none;}
+#walk-panel>div:first-child{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+#walk-panel p{font-size:12px;margin:8px 0;}
+#walk-exit{padding:8px 12px;border-radius:20px;background:#5900ff;color:white;}
+.walk-pad{display:grid;grid-template-columns:repeat(3,48px);gap:6px;touch-action:none;user-select:none;}
+.walk-pad button{width:48px;height:48px;background:rgba(255,255,255,.9);border-radius:12px;font-size:24px;touch-action:none;}
+.walk-pad button:active{background:#DAD0FF;}.walk-pad button:first-child{grid-column:2;}.walk-pad button:nth-child(2){grid-column:1;}
+.walking #labels-3d{display:none!important;}.walking .cam-tools button:not(#cam-walk):not(#cam-night){display:none;}
+#cam-walk[aria-pressed="true"]{background:#DDD0FF;color:#5900ff;}
+@media(max-width:639px){#walk-panel{left:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:10px;}#walk-panel p{max-width:260px;font-size:11px;}}

@@ -244,3 +244,13 @@ El encabezado inicia contraído con logo y menú en todos los tamaños. En móvi
 (hasta 900px), las etiquetas inician apagadas y pueden activarse desde el HUD.
 `node tests/navigation.mjs` comprueba unidades, límites, independencia de tasa
 de eventos/fotogramas, cancelación táctil y liberación de listeners.
+
+## 15. Recorrido a pie del cliente
+`walk.js` ofrece un modo de juego con un cliente LEGO reutilizado que inicia
+saliendo de la terminal (222,70). Flechas/WASD y cruceta táctil permiten avanzar,
+retroceder y girar; arrastrar cambia la orientación. Cámara de seguimiento baja,
+anillo de selección, salida con botón o Escape y restauración de vista anterior.
+Limita el paso en lotes de edificios, terminal, pista y agua; permite la pasarela
+ITSE. Vehículos y clientes se detienen cerca del personaje controlado.
+Al perder foco o cancelar un toque se limpian los controles para evitar marcha
+involuntaria. El modo no crea personajes nuevos cada vez que se activa.

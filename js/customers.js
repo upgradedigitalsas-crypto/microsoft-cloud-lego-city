@@ -154,6 +154,7 @@ export class CustomerLife {
     for (const person of this.people) {
       const b = this.world.buildings.get(person.district);
       if (!person.host) {
+        if(this.world.walker?.active && person.group.position.distanceTo(this.world.walker.group.position)<2.4)continue;
         const oldCycles = Math.floor(person.clock / person.duration);
         person.clock += dt;
         const cycles = Math.floor(person.clock / person.duration);
