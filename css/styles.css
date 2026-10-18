@@ -580,3 +580,8 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
 #cam-night .icon-sun{display:none;}
 #cam-night[aria-pressed="true"] .icon-moon{display:none;}
 #cam-night[aria-pressed="true"] .icon-sun{display:inline;}
+
+body.hide-city-labels:not(.walking) #labels-3d.has-hover{display:block!important;}
+body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important;}
+.blabel.hovered{outline:2px solid #79F6F5;box-shadow:0 4px 20px #16305040;}
+.label-leader.hovered{height:2px;background:#79F6F5;}

@@ -91,7 +91,7 @@ const sim = new Simulation(scene, world);
 buildSecurityLife(scene, world, sim.customers);
 const nightLighting=buildNightLighting(scene,world,sim);
 
-const walk=createWalkMode(scene,world,sim,camera,controls,()=>{navigation.cancel();state.camTarget=null;selectEntity(null,null);});
+const walk=createWalkMode(scene,world,sim,camera,controls,()=>{navigation.cancel();state.camTarget=null;setHovered(null);selectEntity(null,null);});
 
 // Brackets de selección 3D
 const selectBox = brackets('#2563EB');
@@ -216,8 +216,10 @@ export function selectEntity(kind, id, focusCamera = true) {
     vehicleTag.classList.add('hidden');
 
     if (focusCamera) {
-      const targetLook = new THREE.Vector3(d.pos[0], 4, d.pos[1]);
-      const targetPos = targetLook.clone().add(new THREE.Vector3(35, 38, 42));
+      const targetLook = new THREE.Vector3(d.pos[0], b.height/2, d.pos[1]);
+      const halfFov=THREE.MathUtils.degToRad(camera.fov/2);
+      const distance=Math.max(b.size.y/2/Math.tan(halfFov),b.size.x/2/(Math.tan(halfFov)*camera.aspect))*1.45+b.size.z/2;
+      const targetPos = targetLook.clone().add(new THREE.Vector3(0, distance*.12, Math.max(25,distance)));
       flyCameraTo(targetPos, targetLook, 0.9);
     }
   } else {
@@ -259,6 +261,26 @@ world.buildings.forEach(b => pickables.push(...b.meshes));
 sim.all().forEach(v => v.group.traverse(o => {
   if (o.isMesh && o !== v.group.userData.beam) pickables.push(o);
 }));
+const hoverBox=brackets('#79F6F5');hoverBox.visible=false;scene.add(hoverBox);
+let hoveredId=null,lastHover=0;
+function setHovered(id){
+  hoveredId=id;hoverBox.visible=Boolean(id)&&!walk.active;
+  renderer.domElement.style.cursor=id?'pointer':'';
+  labelsContainer.classList.toggle('has-hover',Boolean(id));
+  districtLabels.forEach(({el,leader},key)=>{el.classList.toggle('hovered',key===id);leader.classList.toggle('hovered',key===id);});
+  if(id){const b=world.buildings.get(id);hoverBox.position.set(b.group.position.x,b.height/2+.2,b.group.position.z);hoverBox.scale.set(b.size.x+2,b.size.y+1,b.size.z+2);}
+}
+function hoverAt(e){
+  if(walk.active||e.pointerType==='touch'||e.buttons){setHovered(null);return;}
+  if(performance.now()-lastHover<60)return;lastHover=performance.now();
+  const ndc=pointerNDC(e.clientX,e.clientY,renderer.domElement.getBoundingClientRect());if(!ndc){setHovered(null);return;}
+  mouse.set(ndc.x,ndc.y);camera.updateMatrixWorld();raycaster.setFromCamera(mouse,camera);
+  const hit=raycaster.intersectObjects(pickables,false).find(h=>h.object.visible&&(h.object.material.opacity===undefined||h.object.material.opacity>.05));
+  const id=hit?.object.userData.entityId;setHovered(world.buildings.has(id)?id:null);
+}
+renderer.domElement.addEventListener('pointerleave',e=>{if(!e.relatedTarget?.closest?.('.blabel'))setHovered(null);});
+districtLabels.forEach(({el},id)=>{el.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch'&&!walk.active)setHovered(id);});el.addEventListener('pointerleave',()=>setHovered(null));});
+controls.addEventListener('start',()=>setHovered(null));
 const pointers = new Set();
 let tap = null;
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -268,6 +290,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
 });
 renderer.domElement.addEventListener('pointermove', e => {
   if (tap && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 6) tap.moved = true;
+  hoverAt(e);
 });
 renderer.domElement.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); tap = null; });
 renderer.domElement.addEventListener('pointerup', e => {
@@ -1311,12 +1334,13 @@ function animate() {
   const occupied=[];
   const viewportWidth=container.clientWidth,viewportHeight=container.clientHeight;
   const topMargin=viewportWidth<640?148:104;
-  districtLabels.forEach(({ el, leader, pos, width, height }) => {
+  districtLabels.forEach(({ el, leader, pos, width, height },id) => {
+    if(document.body.classList.contains('hide-city-labels')&&id!==hoveredId){el.style.display='none';leader.style.display='none';return;}
     tempV.copy(pos).project(camera);
     if(tempV.z<=-1||tempV.z>=1||Math.abs(tempV.x)>1.1||Math.abs(tempV.y)>1.1){el.style.display='none';leader.style.display='none';return;}
     const anchorX=(tempV.x*.5+.5)*viewportWidth,anchorY=(-tempV.y*.5+.5)*viewportHeight;
     let placed=null;
-    for(const dy of [0,-40,40,-80,80,-120,120]) {
+    for(const dy of (id===hoveredId?[-40,-80,40,80,-120,120]:[0,-40,40,-80,80,-120,120])) {
       for(const dx of [0,-85,85]) {
         const x=Math.max(width/2+8,Math.min(viewportWidth-width/2-52,anchorX+dx));
         const y=Math.max(topMargin+height/2,Math.min(viewportHeight-height/2-12,anchorY+dy));
