@@ -284,3 +284,6 @@ Llegada desde ventanilla (`arrival.js`): vuelta completa de 20 s, aproximación 
 
 ## 19. Capitana ElevenLabs
 Servicio Vercel `itse-cloud-city-voice`, función `api/captain`, clave sensible solo en Vercel y voz configurable por entorno. Modelo eleven_multilingual_v2 con alineación temporal; guion fijo «Les habla su capitana». Cliente `captain-recording.js` carga audio desde el servicio; Soundscape reproduce y emite subtítulos según currentTime, pausa al ocultar pestaña y detiene al saltar la llegada. Respaldo SpeechSynthesis si API o reproducción falla. Generación real verificada con HTTP 200 y cinco frases (~25 s); pruebas `tests/captain-api.mjs`. Deploy Vercel manual desde `services/captain-api`; GitHub Pages conserva la app estática. Versión 20261018-elevenlabs-1.
+
+### Llegada desde la ventanilla — 2026-10-18
+La cámara mantiene una órbita continua mientras habla la capitana; termina con la locución, sin quedarse detenida al concluir una trayectoria fija. El reloj cinematográfico usa el tiempo real del fotograma independientemente del límite de simulación. Movimiento reducido conserva un arco suave. Sin audio se muestran subtítulos temporizados; Escape y Saltar llegada siguen disponibles. La intro respeta el foco y bloqueo de controles de la llegada.

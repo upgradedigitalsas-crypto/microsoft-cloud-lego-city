@@ -1323,7 +1323,8 @@ const tempV = new THREE.Vector3();
 function animate() {
   if (disposed) return;
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const frameDelta = clock.getDelta();
+  const dt = Math.min(frameDelta, 0.05);
   if (document.body.classList.contains('intro-active')) return;
   const t = clock.elapsedTime;
 
@@ -1332,7 +1333,7 @@ function animate() {
   navigation.update(dt);
   if(!walk.active&&!arrival?.active){controls.update();if(camera.position.y<1.2){camera.position.y=1.2;camera.lookAt(controls.target);}}
 
-  arrival?.update(dt);
+  arrival?.update(frameDelta);
 
   // Animaciones del mundo LEGO
   world.anims.forEach(fn => fn(t, dt));
