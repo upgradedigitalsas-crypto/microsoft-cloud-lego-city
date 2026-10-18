@@ -1,3 +1,4 @@
+import { createArrival } from './arrival.js';
 import { PRODUCT_BRIEFS } from './product-briefs.js';
 import { createWalkMode } from './walk.js';
 import { smoothNavigation } from './navigation.js';
@@ -1315,6 +1316,7 @@ function updateKPIs() {
 let disposed = false;
 const clock = new THREE.Clock();
 let mmTimer = 0;
+let arrival=null;
 let kpiTimer = 0;
 const tempV = new THREE.Vector3();
 
@@ -1328,7 +1330,9 @@ function animate() {
   // Actualizar cámara si está en transición
   updateCameraAnimation(dt);
   navigation.update(dt);
-  if(!walk.active){controls.update();if(camera.position.y<1.2){camera.position.y=1.2;camera.lookAt(controls.target);}}
+  if(!walk.active&&!arrival?.active){controls.update();if(camera.position.y<1.2){camera.position.y=1.2;camera.lookAt(controls.target);}}
+
+  arrival?.update(dt);
 
   // Animaciones del mundo LEGO
   world.anims.forEach(fn => fn(t, dt));
@@ -1429,7 +1433,7 @@ resizeStage();
 window.addEventListener('pagehide', e => {
   if (e.persisted) return;
   disposed = true;
-  stageObserver.disconnect(); navigation.dispose(); walk.dispose(); controls.dispose(); audio.dispose();
+  stageObserver.disconnect(); arrival?.dispose(); navigation.dispose(); walk.dispose(); controls.dispose(); audio.dispose();
   const geometries = new Set(), materials = new Set(), textures = new Set();
   scene.traverse(o => {
     if (o.isInstancedMesh) o.dispose();
@@ -1518,12 +1522,8 @@ headerToggle.addEventListener('click',()=>setHeaderOpen(headerOptions.hidden));
 headerToggle.closest('header').addEventListener('keydown',event=>{if(event.key==='Escape'){setHeaderOpen(false);headerToggle.focus();}});
 
 window.addEventListener('city-arrival',()=>{
-  flyCameraTo(DEFAULT_CAM_POS,DEFAULT_TARGET,2);
-  const welcome=document.createElement('section');welcome.className='captain-welcome glass';welcome.setAttribute('role','status');
-  const title=document.createElement('strong');title.textContent='Tu capitán · Bienvenido a ITSE Cloud City';
-  const text=document.createElement('p');text.textContent=audio.welcome;
-  const close=document.createElement('button');close.textContent='Entendido';close.onclick=()=>welcome.remove();welcome.append(title,text,close);container.append(welcome);
-  setTimeout(()=>welcome.remove(),22000);
+  navigation.cancel();state.camTarget=null;
+  arrival=createArrival(camera,controls,audio,()=>flyCameraTo(DEFAULT_CAM_POS,DEFAULT_TARGET,1.5));
 });
 const ambientButton=document.getElementById('ambient-toggle');
 function refreshAmbient(){ambientButton.setAttribute('aria-pressed',String(audio.enabled));ambientButton.title=audio.enabled?'Silenciar ambiente':'Activar ambiente';ambientButton.setAttribute('aria-label',ambientButton.title);}

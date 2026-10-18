@@ -640,3 +640,12 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 #ambient-toggle .sound-muted{display:none;}#ambient-toggle[aria-pressed="false"] .sound-muted{display:block;}
 .walking .cam-tools #ambient-toggle{display:grid;}
 @media(max-width:639px){.captain-welcome{bottom:12px;padding:14px;}.captain-welcome p{font-size:12px;}}
+
+.arrival-window{position:fixed;inset:0;z-index:80;overflow:hidden;pointer-events:auto;}
+.aircraft-rim{position:absolute;inset:5% 9%;border-radius:45% / 28%;border:18px solid #c6ccd5;box-shadow:inset 0 0 20px #182133,0 0 0 150vmax #17202f;pointer-events:none;}
+.aircraft-wing{position:absolute;right:9%;bottom:23%;width:32%;height:13%;background:linear-gradient(165deg,#dce5ee 15%,#8396aa 55%,#5900ff 56%,#30246f 68%,#c3ccd7 69%);clip-path:polygon(100% 100%,0 60%,85% 0);opacity:.95;pointer-events:none;}
+.captain-subtitle{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);width:min(740px,78%);margin:0;text-align:center;color:#fff;font:500 clamp(16px,2.1vw,25px)/1.5 'Segoe UI',sans-serif;text-shadow:0 2px 4px #000,0 0 10px #000;white-space:normal;}
+.arrival-skip{position:absolute;right:24px;bottom:22px;padding:10px 18px;border-radius:24px;border:1px solid #ffffff70;background:#17202f;color:white;}
+.arrival-skip:focus-visible{outline:3px solid #79f6f5;outline-offset:3px;}
+.arrival-active .topbar,.arrival-active .cam-tools,.arrival-active #labels-3d{visibility:hidden;}
+@media(max-width:639px){.aircraft-rim{inset:8% 4%;border-width:12px;}.captain-subtitle{bottom:16%;width:80%;}.aircraft-wing{right:5%;bottom:34%;}}

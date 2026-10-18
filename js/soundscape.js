@@ -11,7 +11,19 @@ class Soundscape extends BrickAudio {
  }
  async toggle(){const enabled=await super.toggle();if(enabled){this.start();this.speak();}else {window.speechSynthesis?.cancel();this.speaking=false;}return enabled;}
  city(){this.phase='city';this.arrived=true;this.speak();}
- speak(){if(!this.arrived||this.spoken||!this.enabled||this.context?.state!=='running'||!window.speechSynthesis)return;this.spoken=true;const speech=new SpeechSynthesisUtterance(this.welcome);speech.lang='es-CO';speech.rate=.96;speech.volume=.8;this.speaking=true;speech.onend=speech.onerror=()=>{this.speaking=false;};window.speechSynthesis.speak(speech);}
+ get lines(){return ['Les habla su capitán. Bienvenidos a ITSE Cloud City.','Bajo nosotros, cada isla representa una capacidad de Microsoft para su empresa.','Productividad, datos, inteligencia artificial y seguridad.','Seleccionen un edificio para descubrir sus posibilidades.','O recorran la ciudad a pie desde el aeropuerto. Disfruten la visita.'];}
+ speak(){
+  if(!this.arrived||this.spoken||!this.enabled||this.context?.state!=='running'||!window.speechSynthesis)return;
+  this.spoken=true;this.speaking=true;let i=0;
+  const next=()=>{
+   if(!this.enabled||!this.speaking)return;
+   if(i>=this.lines.length){this.speaking=false;return;}
+   const line=this.lines[i++],speech=new SpeechSynthesisUtterance(line);speech.lang='es-CO';speech.rate=.96;speech.volume=.8;
+   speech.onstart=()=>window.dispatchEvent(new CustomEvent('captain-caption',{detail:line}));
+   speech.onend=next;speech.onerror=()=>{this.speaking=false;};window.speechSynthesis.speak(speech);
+  };next();
+ }
+
  start(){
   if(this.timer||this.context?.state!=='running')return;
   const c=this.context;this.master=c.createGain();this.master.gain.value=.15;this.master.connect(c.destination);this.nodes.push(this.master);

@@ -279,3 +279,5 @@ Ficha de producto al seleccionar edificios: explicación Qué es / Para qué sir
 
 ## 18. Llegada y ambiente
 Anfitrión ITSE entra por la derecha sobre la línea (sin ascenso vertical). Tras saludo: negro de 8.5 a 11 s; vuelo sin personajes de 11 a 14.3 s; transición al túnel 15.5 s; ciudad 19.5 s. Llegada con vista general, saludo del capitán en texto y SpeechSynthesis en español. Audio sintetizado compartido desde intro, habilitado por defecto pero desbloqueado solo con interacción según el navegador. Cuatro capas continuas y máximo ocho voces cortas, agua/motores/drone/fábrica/pasos; pausa al ocultar pestaña y botón mute visible. Son ambientaciones sintéticas, no grabaciones ni audio espacial vinculado a cada actor. Versión 20261018-arrival-audio-1.
+
+Llegada desde ventanilla (`arrival.js`): vuelta completa de 20 s, aproximación y descenso al aeropuerto hasta 34 s, espera limitada por locución. Marco y ala decorativos; subtítulos blancos por frase sincronizados con SpeechSynthesis.onstart, temporizados si no hay voz. Saltar/Escape, movimiento reducido y limpieza al cerrar. Versión 20261018-window-arrival-1.
