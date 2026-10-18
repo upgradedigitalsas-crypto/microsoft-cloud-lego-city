@@ -1,3 +1,4 @@
+import { soundscape } from './soundscape.js';
 // Sparkles reference adapted to native Canvas + Three.js; no React/runtime packages.
 const overlay=document.getElementById('loader'),canvas=document.getElementById('intro-fx'),ctx=canvas.getContext('2d');
 const stage=document.getElementById('intro-stage'),caption=document.getElementById('intro-caption'),skip=document.getElementById('intro-skip');
@@ -7,7 +8,7 @@ const stars=Array.from({length:1200},()=>({x:Math.random(),y:Math.random(),phase
 
 function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);}
 resize();window.addEventListener('resize',resize);
-function finish(){if(closed||!ready)return;closed=true;cancelAnimationFrame(raf);film?.dispose();film=null;window.removeEventListener('resize',resize);reduce.removeEventListener('change',motionChange);overlay.classList.add('done');document.body.classList.remove('intro-active');document.querySelector('.topbar').inert=false;document.getElementById('stage').inert=false;setTimeout(()=>{overlay.remove();document.getElementById('executive-start')?.focus({preventScroll:true});},550);}
+function finish(){if(closed||!ready)return;closed=true;cancelAnimationFrame(raf);film?.dispose();film=null;window.removeEventListener('resize',resize);reduce.removeEventListener('change',motionChange);overlay.classList.add('done');document.body.classList.remove('intro-active');soundscape.city();window.dispatchEvent(new Event('city-arrival'));document.querySelector('.topbar').inert=false;document.getElementById('stage').inert=false;setTimeout(()=>{overlay.remove();document.getElementById('executive-start')?.focus({preventScroll:true});},550);}
 function say(text){if(caption.textContent!==text)caption.textContent=text;}
 function loadCity(){if(loading)return loading;say('Preparando tu ecosistema cloud…');loading=import('./main.js').then(()=>{ready=true;if(skipped)finish();}).catch(()=>{failed=true;overlay.dataset.phase='error';caption.textContent='No se pudo cargar la ciudad. Comprueba tu conexión y vuelve a intentarlo.';skip.textContent='Reintentar';skip.disabled=false;});return loading;}
 function motionChange(e){if(e.matches){skipped=true;film?.dispose();film=null;loadCity();}}
@@ -16,9 +17,11 @@ skip.addEventListener('click',()=>{if(failed){location.reload();return;}skipped=
 document.querySelector('.topbar').inert=true;document.getElementById('stage').inert=true;
 function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=started?(now-started)/1000:0;
  ctx.clearRect(0,0,w,h);
- const tunnel=!skipped&&t>=13,blackout=!skipped&&t>=11.8&&t<13;
- overlay.dataset.phase=failed?'error':skipped?'loading':tunnel?'tunnel':blackout?'blackout':t>=8.5?'flight':t>=5.8?'handshake':'arrival';
- stage.style.opacity=blackout||skipped?'0':'1';
+ const tunnel=!skipped&&t>=15.5,blackout=!skipped&&((t>=8.5&&t<11)||(t>=14.3&&t<15.5));
+ overlay.dataset.phase=failed?'error':skipped?'loading':tunnel?'tunnel':blackout?'blackout':t>=11?'flight':t>=5.8?'handshake':'arrival';
+ const fade=t>=8.5&&t<11?Math.min(1,(t-8.5)/.4):1;
+ stage.style.opacity=skipped?'0':blackout?String(1-fade):'1';
+ soundscape.phase=tunnel?'tunnel':blackout?'blackout':t>=11?'flight':'intro';
  document.getElementById('intro-brand').style.opacity=blackout?'0':'1';
  if(!tunnel&&!blackout){
    const y=film?film.lineY():h*.64;
@@ -34,12 +37,12 @@ function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=st
      const a=(.1+.9*(.5+.5*Math.sin(seconds*4+s.phase)))*fade;
      ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.beginPath();ctx.arc(w/2+px,y+py,.4+s.x*.6,0,Math.PI*2);ctx.fill();
    }
- } else if(tunnel){film?.renderTunnel(t-13);}
+ } else if(tunnel){film?.renderTunnel(t-15.5);}
 
- if(!skipped&&!failed){if(!tunnel)film?.render(t);if(t>9&&!loading)loadCity();if(t>=13)say('Conectando posibilidades');else if(t>=8.5)say('Tus datos. Un mundo de posibilidades.');else if(t>=5.8)say('La tecnología empieza con una conexión.');if(t>=17){if(ready)finish();else say('La ciudad está terminando de cargar…');}}
+ if(!skipped&&!failed){if(!tunnel)film?.render(t);if(t>9&&!loading)loadCity();if(t>=15.5)say('Conectando posibilidades');else if(t>=11)say('Tus datos. Un mundo de posibilidades.');else if(blackout)say('');else if(t>=5.8)say('La tecnología empieza con una conexión.');if(t>=19.5){if(ready)finish();else say('La ciudad está terminando de cargar…');}}
 }
 raf=requestAnimationFrame(frame);
 if(skipped){skip.textContent='Abriendo ciudad…';skip.disabled=true;loadCity();}
 else import('./intro-scene.js').then(({createIntroScene})=>{if(closed||skipped)return;try{film=createIntroScene(stage);started=performance.now();}catch{skipped=true;loadCity();}}).catch(()=>{skipped=true;loadCity();});
-window.addEventListener('pagehide',e=>{cancelAnimationFrame(raf);if(!e.persisted){film?.dispose();window.removeEventListener('resize',resize);}});
+window.addEventListener('pagehide',e=>{cancelAnimationFrame(raf);if(!e.persisted){film?.dispose();if(!ready)soundscape.dispose();window.removeEventListener('resize',resize);}});
 window.addEventListener('pageshow',e=>{if(e.persisted&&!closed)raf=requestAnimationFrame(frame);});

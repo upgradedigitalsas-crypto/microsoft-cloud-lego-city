@@ -1516,3 +1516,15 @@ function setHeaderOpen(open){
 }
 headerToggle.addEventListener('click',()=>setHeaderOpen(headerOptions.hidden));
 headerToggle.closest('header').addEventListener('keydown',event=>{if(event.key==='Escape'){setHeaderOpen(false);headerToggle.focus();}});
+
+window.addEventListener('city-arrival',()=>{
+  flyCameraTo(DEFAULT_CAM_POS,DEFAULT_TARGET,2);
+  const welcome=document.createElement('section');welcome.className='captain-welcome glass';welcome.setAttribute('role','status');
+  const title=document.createElement('strong');title.textContent='Tu capitán · Bienvenido a ITSE Cloud City';
+  const text=document.createElement('p');text.textContent=audio.welcome;
+  const close=document.createElement('button');close.textContent='Entendido';close.onclick=()=>welcome.remove();welcome.append(title,text,close);container.append(welcome);
+  setTimeout(()=>welcome.remove(),22000);
+});
+const ambientButton=document.getElementById('ambient-toggle');
+function refreshAmbient(){ambientButton.setAttribute('aria-pressed',String(audio.enabled));ambientButton.title=audio.enabled?'Silenciar ambiente':'Activar ambiente';ambientButton.setAttribute('aria-label',ambientButton.title);}
+ambientButton.addEventListener('click',async()=>{await audio.toggle();refreshAmbient();});refreshAmbient();

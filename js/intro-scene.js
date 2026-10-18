@@ -54,8 +54,8 @@ export function createIntroScene(container) {
   function render(t){
     const walk=ease(t/4),arrival=ease((t-3)/2.8),shake=t>=6&&t<8.4;
     visitor.root.position.set(THREE.MathUtils.lerp(-5,-1.13,walk),t<4?Math.abs(Math.sin(t*8))*.065:0,0);
-    host.root.visible=t>=3;
-    host.root.position.set(THREE.MathUtils.lerp(5,1.13,arrival),(t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0)-3.2*(1-ease((t-3)/.8)),0);
+    visitor.root.visible=t<8.5;host.root.visible=t>=3&&t<8.5;
+    host.root.position.set(THREE.MathUtils.lerp(5,1.13,arrival),(t>3&&t<5.8?Math.abs(Math.sin(t*8))*.065:0),0);
     visitor.root.rotation.y=t<4?.5:shake?.28:0;host.root.rotation.y=t<5.8?-.5:shake?-.28:0;
     for(const [fig,moving] of [[visitor,t<4],[host,t>3&&t<5.8]]){
       fig.legs.forEach((leg,i)=>leg.rotation.x=moving?Math.sin(t*8+i*Math.PI)*.55:0);
@@ -64,7 +64,7 @@ export function createIntroScene(container) {
     const reach=ease((t-5.8)/.5)*(1-ease((t-8)/.5));
     visitor.arms[1].rotation.z=reach*(.65+Math.sin(t*13)*.04);host.arms[0].rotation.z=-reach*(.65+Math.sin(t*13)*.04);
     visitor.arms[1].rotation.x=-reach*.16;host.arms[0].rotation.x=-reach*.16;
-    if(t>=8.5){const f=ease((t-8.5)/3.7);plane.visible=true;plane.position.set(0,-8+f*11,8-f*55);plane.rotation.x=-.25+f*.25;}else plane.visible=false;
+    if(t>=11&&t<15.5){const f=ease((t-11)/3.7);plane.visible=true;plane.position.set(0,-8+f*11,8-f*55);plane.rotation.x=-.25+f*.25;}else plane.visible=false;
     renderer.render(scene,camera);
   }
   function dispose(){tunnel.dispose();observer.disconnect();const gs=new Set(),ms=new Set(),ts=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});ms.forEach(m=>{if(m.map)ts.add(m.map);m.dispose();});gs.forEach(g=>g.dispose());ts.add(logo);ts.forEach(t=>t.dispose());renderer.dispose();renderer.domElement.remove();}

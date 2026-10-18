@@ -635,3 +635,8 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .product-more ul{padding-left:18px;font-size:13px;line-height:1.6;}.product-more li{margin:6px 0;}
 .product-more h3{font-size:12px;}.product-more small{font-size:11px;line-height:1.5;display:block;}
 .product-sources{margin-top:16px;padding-top:12px;border-top:1px solid #dce3ec;font-size:12px;}.product-sources small{display:block;font-size:10px;margin-top:6px;color:#65758a;}
+.captain-welcome{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(520px,calc(100% - 100px));padding:18px;z-index:24;background:rgba(247,250,255,.94);}
+.captain-welcome strong{font-size:14px;color:#243f67;}.captain-welcome p{font-size:13px;line-height:1.6;margin:8px 0;}.captain-welcome button{background:#5900ff;color:white;border-radius:20px;padding:8px 15px;}
+#ambient-toggle .sound-muted{display:none;}#ambient-toggle[aria-pressed="false"] .sound-muted{display:block;}
+.walking .cam-tools #ambient-toggle{display:grid;}
+@media(max-width:639px){.captain-welcome{bottom:12px;padding:14px;}.captain-welcome p{font-size:12px;}}
