@@ -258,3 +258,6 @@ involuntaria. El modo no crea personajes nuevos cada vez que se activa.
 El recorrido permite mirar arriba, abajo y a los lados arrastrando mouse o dedo. La inclinación está limitada a −60°/+80° para evitar inversiones; perder captura cancela el gesto. Versión: 20261017-walk-look-1.
 
 Barra vertical: iconos SVG locales coherentes (zoom, rotación, encuadre, muñeco amarillo de recorrido, edificio, avión, escudo, etiquetas y luna/sol). Todos tienen nombres accesibles; día/noche conserva el SVG y actualiza su estado. Versión 20261017-icons-1.
+
+## 16. Equipos dentro de la torre ITSE
+Torre Art Deco LEGO con acabados gris acero, retranqueos y corona estriada. Seis pisos abiertos al frente muestran 18 minifiguras animadas: Soporte/Mesa de ayuda, Ciberseguridad, Comercial, C-LEVELS, Entrenamiento y Development Seniors IA. Cada piso lleva rótulo, estaciones y monitores; soporte tiene auriculares y SOC/IA racks. Mantiene altura, logo, pasarela, parqueadero y límites de navegación. Versión 20261017-itse-staff-1.

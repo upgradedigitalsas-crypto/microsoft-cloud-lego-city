@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { brick, roundBrick, matCache, rbox, plastic, sign } from './lego.js';
+import { brick, roundBrick, matCache, rbox, plastic, sign, minifig } from './lego.js';
 
 // Brick-built Art Deco landmark, with the original ITSE silhouette voxelised in 3D.
 export function buildITSETower(scene, world, studs) {
@@ -8,24 +8,75 @@ export function buildITSETower(scene, world, studs) {
   const block=(o)=>brick(group,{ctx,...o});
   block({w:22,d:20,h:.8,y:.3,color:'#DDD8CB',studs:false});
   block({w:20,d:18,h:.6,y:1.1,color:'#F6EBD5'});
+  const staff=[],departments=[
+    ['Soporte · Mesa de ayuda','#29A9DB','TICKETS'],
+    ['Ciberseguridad','#22B89A','SOC · DEFENDER'],
+    ['Equipo Comercial','#F4B544','CLIENTES · CRM'],
+    ['C-LEVELS','#8457DE','ESTRATEGIA'],
+    ['Entrenamiento','#EA8B4A','LEARNING'],
+    ['Development Seniors IA','#4778D9','CODE · AI']
+  ];
+  function office(w,d,base,department,index){
+    const [name,color,screenText]=department;
+    // Open front and side bays reveal real furnished floors, not opaque facades.
+    block({w,d,h:.22,y:base,color:'#A9B4C1'});
+    block({w,d:.45,h:2.1,y:base,z:-d/2+.22,color:'#758393'});
+    block({w:.45,d,h:2.1,y:base,x:-w/2+.22,color:'#8996A5'});
+    for(const x of [-w/2+.4,w/2-.4])block({x,z:d/2-.3,y:base,w:.6,d:.6,h:2.1,color:'#D8E0E7'});
+    block({w,d:.3,h:.26,y:base+2.02,z:d/2,color:color,studs:false});
+    const label=sign(group,name,{w:w-1.4,h:.65,y:base+.03,z:d/2+.24,bg:'#243246',fg:'#FFFFFF'});
+    label.material.emissive.set('#FFFFFF');label.material.emissiveMap=label.material.map;label.material.emissiveIntensity=.35;
+    sign(group,screenText,{w:6,h:1.05,y:base+1.3,z:-d/2+.48,bg:'#132434',fg:color});
+    for(let i=0;i<3;i++){
+      const x=(i-1)*3.5,z=d/2-2;
+      block({x,z:z+.65,y:base+.85,w:2.4,d:1.1,h:.16,color:'#E1E6EA'});
+      block({x,z:z+.65,y:base+.25,w:.35,d:.45,h:.6,color:'#627080',studs:false});
+      block({x,z:z+.2,y:base+1.04,w:.95,d:.12,h:.58,color:'#182332',studs:false});
+      block({x,z:z+.28,y:base+1.1,w:.78,d:.04,h:.4,mat:plastic(color,{emissive:color,emissiveIntensity:.6}),studs:false});
+      block({x,z:z+.8,y:base+1.02,w:.75,d:.3,h:.05,color:'#546276',studs:false});
+      const person=minifig(color,'#263243');person.scale.setScalar(.57);person.position.set(x,base+.24,z-.35);group.add(person);
+      staff.push({person,phase:index*1.3+i});
+      if(index===0){ // Headsets distinguish the help desk.
+        const headset=new THREE.Mesh(new THREE.TorusGeometry(.33,.045,5,12,Math.PI),plastic('#202A38'));
+        headset.position.y=2.44;person.add(headset);
+      }
+    }
+    if(index===2||index===3){
+      // Sales pipeline and executive KPIs, built as colored LEGO charts.
+      for(let j=0;j<4;j++)block({x:-2+j*1.2,z:-d/2+.6,y:base+.35,w:.7,d:.12,h:.25+j*.22,color,studs:false});
+    }
+    if(index===4){
+      block({x:4.5,z:-d/2+1,y:base+.65,w:2.1,d:.15,h:1.1,color:'#F4F5F7',studs:false});
+      for(let j=0;j<3;j++)block({x:4.5,z:-d/2+1.1,y:base+.85+j*.25,w:1.5-j*.2,d:.05,h:.07,color,studs:false});
+    }
+    if(index===1||index===5){
+      for(const x of [w/2-1.1,w/2-2.2]){
+        block({x,z:-d/2+1,y:base+.22,w:.8,d:.65,h:1.7,color:'#28394C'});
+        for(let j=0;j<4;j++)block({x,z:-d/2+1.35,y:base+.45+j*.3,w:.55,d:.06,h:.08,color:'#4DDBDA',studs:false});
+      }
+    }
+  }
   let y=1.7;
   for(const [w,d,floors] of [[18,16,3],[14,12,8],[10,9,6],[6,6,3]]) {
     for(let floor=0;floor<floors;floor++) {
-      block({w,d,h:2.1,y,color:floor%2?'#DDD6C3':'#EEE7D6'});
+      const department=w===14&&floor<6?departments[floor]:null;
+      if(department)office(w,d,y,department,floor);
+      else block({w,d,h:2.1,y,color:floor%2?'#A9B4C1':'#CBD2DA'});
       // Narrow windows and projecting piers give the tower its Art Deco rhythm.
       for(const side of [-1,1]) {
+        if(department)continue;
         for(let x=-w/2+1.4;x<w/2-1;x+=2.1) {
           windows.push([x,y+1,side*(d/2+.06),.85,1.25,.13]);
-          block({x:x+.68,z:side*(d/2+.12),y,w:.3,d:.35,h:2.1,color:'#F8EEDB',studs:false});
+          block({x:x+.68,z:side*(d/2+.12),y,w:.3,d:.35,h:2.1,color:'#E0E5EB',studs:false});
         }
         for(let z=-d/2+1.4;z<d/2-1;z+=2.1)windows.push([side*(w/2+.06),y+1,z,.13,1.25,.85]);
       }
       y+=2.3;
     }
-    block({w:w+1.2,d:d+1.2,h:.45,y,color:'#C5BAA3'});y+=.6;
+    block({w:w+1.2,d:d+1.2,h:.45,y,color:'#7B8999'});y+=.6;
   }
-  block({w:4,d:4,h:3,y,color:'#D7CDB9'});
-  block({w:2,d:2,h:3,y:y+3,color:'#E9DFCB'});
+  block({w:4,d:4,h:3,y,color:'#A9B4C1'});
+  block({w:2,d:2,h:3,y:y+3,color:'#CBD2DA'});
   roundBrick(group,{ctx,r:.35,h:8,y:y+6,color:'#D1D9E6',stud:false});
   const windowMaterial=plastic('#517D9F',{emissive:'#FFDB91',emissiveIntensity:0});
   const panes=new THREE.InstancedMesh(rbox(1,1,1),windowMaterial,windows.length);
@@ -77,5 +128,8 @@ export function buildITSETower(scene, world, studs) {
     mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();
   };
   image.src=new URL('../assets/itse-logo.png',import.meta.url).href;
-  world.itseTower={group,height:y+14,windowMaterial,logo};
+  // Art Deco crown: stepped metallic LEGO ribs below the antenna.
+  for(const x of [-1.5,0,1.5])block({x,y:y+1,w:.3,d:4.2,h:3.8,color:'#E0E5EB',studs:false});
+  world.anims.push(t=>{for(const {person,phase} of staff){person.userData.arms.forEach((arm,i)=>{arm.rotation.x=-.5+Math.sin(t*2.6+phase+i)*.12;});}});
+  world.itseTower={group,height:y+14,windowMaterial,logo,staff,departments:departments.map(d=>d[0])};
 }
