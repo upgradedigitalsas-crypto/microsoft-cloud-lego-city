@@ -1,0 +1,57 @@
+{
+  "copilotStudio": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/842351-microsoft-copilot-studio-product-tour-0x720-3266k"
+  },
+  "copilot": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/M365-copilot_video_en-us-0x720-3266k"
+  },
+  "secCopilot": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/msft-security-copilot-desire-agent-automation-0x720-3266k"
+  },
+  "m365": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/3625053-microsoft-365-apps-mobile-0x720-3266k"
+  },
+  "dynamics": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/917303-CopilotAndAgentSizzle-0x720-3266k"
+  },
+  "power": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/780952-PowerPlatformSizzle-0x720-3266k"
+  },
+  "azuredata": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/RF-MicrosoftFoundry-Social-Models-0x720-3266k"
+  },
+  "fabric": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/rf-0x720-3266k"
+  },
+  "entra": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/126400-microsoft-entra-id-hero-video-0x720-3266k"
+  },
+  "sentinel": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/126600-sentinel-promo-hero_video_en-us-0x720-3266k"
+  },
+  "purview": {
+    "status": 200,
+    "type": "video/mp4",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/640068-microsoft-purview-0x720-3266k"
+  }
+}

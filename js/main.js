@@ -1,3 +1,4 @@
+import { PRODUCT_BRIEFS } from './product-briefs.js';
 import { createWalkMode } from './walk.js';
 import { smoothNavigation } from './navigation.js';
 // ============================================================================
@@ -342,6 +343,7 @@ detailEl.setAttribute('role','dialog');detailEl.setAttribute('aria-label','Infor
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.selected&&!walk.active)selectEntity(null,null);});
 
 function renderDetail() {
+  detailEl.querySelectorAll('video').forEach(video=>{video.pause();video.removeAttribute('src');video.load();});
   detailEl.inert = !state.selected;
   detailEl.setAttribute('aria-hidden',String(!state.selected));
   if (!state.selected) {
@@ -354,18 +356,33 @@ function renderDetail() {
   if (kind === 'district') {
     const d = data;
     const pillar = PILLARS[d.pillar];
-    const serviceRole = SERVICE_ROLES[id];
+    const brief = PRODUCT_BRIEFS[id];
     detailEl.innerHTML = `
       <div class="d-head">
         <div class="d-ico product-mark">${productIcons[id]?`<img src="assets/products/${productIcons[id]}.svg" alt="" width="36" height="36">`:uiIcon('building')}</div>
         <div><span class="d-kicker">${pillar.name}</span><h2 class="d-title" id="detail-title">${d.name}</h2><div class="d-sub">${d.model} · Microsoft Cloud</div></div>
         <div class="d-actions"><button class="icon-btn" title="Ver de frente" aria-label="Ver edificio de frente" id="btn-focus-d">${uiIcon('focus')}</button><button class="icon-btn" title="Cerrar" aria-label="Cerrar ficha" id="btn-close-d">${uiIcon('close')}</button></div>
       </div>
-      <section class="product-section"><h3>Qué es</h3><p>${d.desc}</p></section>
-      <section class="product-section product-value"><h3>Para qué sirve en tu empresa</h3><p>${serviceRole.need}</p><p><strong>${serviceRole.result}</strong></p></section>
-      <section class="product-section"><h3>Servicios y capacidades</h3><div class="chips">${d.items.map(it=>`<span class="chip">${it}</span>`).join('')}</div></section>
+      <section class="product-section"><h3>Visión ejecutiva</h3><p>${escapeHTML(brief.summary)}</p></section>
+      <section class="product-section product-value"><h3>Valor para la empresa</h3><p>${escapeHTML(brief.value)}</p></section>
+      ${brief.video?`<section class="product-section product-video"><h3>Presentación oficial de Microsoft</h3><div id="product-video-slot"><button class="video-launch" id="product-video-play" aria-label="Reproducir video oficial de ${escapeHTML(d.name)}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg><span>Ver video introductorio</span></button></div><p class="video-caption">Audio original: ${escapeHTML(brief.video.language||'ver reproductor')}. <a href="${escapeHTML(brief.video.source)}" target="_blank" rel="noopener noreferrer">Ver en Microsoft</a></p></section>`:''}
+      <details class="product-more" open><summary>Casos de uso prioritarios</summary><ul>${brief.useCases.map(item=>`<li>${escapeHTML(item)}</li>`).join('')}</ul></details>
+      <details class="product-more"><summary>Qué debe evaluar la dirección</summary><p>${escapeHTML(brief.decision)}</p><h3>Indicadores sugeridos para un piloto</h3><p>${escapeHTML(brief.metrics)}</p><small>Criterios editoriales de evaluación; no representan resultados garantizados.</small></details>
+      <details class="product-more"><summary>Servicios y capacidades</summary><div class="chips">${d.items.map(it=>`<span class="chip">${escapeHTML(it)}</span>`).join('')}</div></details>
+      <div class="product-sources"><a href="${escapeHTML(brief.source)}" target="_blank" rel="noopener noreferrer">Consultar fuente oficial de Microsoft ↗</a><small>Síntesis editorial en español · Revisado el 18 oct 2026</small></div>
       <details class="product-more"><summary>Ver su representación en la ciudad</summary><p>${CITY_STORIES[id][2]}</p><p>${CITY_STORIES[id][3]}</p></details>
     `;
+    document.getElementById('product-video-play')?.addEventListener('click',()=>{
+      const slot=document.getElementById('product-video-slot');
+      const video=document.createElement('video');video.controls=true;video.playsInline=true;video.preload='none';video.src=brief.video.src;
+      video.setAttribute('aria-label',`Video oficial de ${d.name}`);
+      const fallback=document.createElement('p');fallback.className='video-caption';fallback.hidden=true;fallback.textContent='No se pudo reproducir aquí. Usa el enlace Ver en Microsoft.';
+      video.addEventListener('error',()=>{fallback.hidden=false;});
+      slot.replaceChildren(video,fallback);
+      const transcript=brief.video.files?.find(file=>file.mediaType==='transcript');
+      if(transcript){const a=document.createElement('a');a.textContent='Leer transcripción original';a.href=new URL(transcript.url,brief.video.source).href;a.target='_blank';a.rel='noopener noreferrer';a.className='video-caption';slot.append(a);}
+      video.play().catch(()=>{fallback.hidden=false;});
+    });
     detailEl.setAttribute('aria-label',d.name);
     document.getElementById('btn-close-d').addEventListener('click',()=>selectEntity(null,null));
     document.getElementById('btn-focus-d').addEventListener('click',()=>selectEntity('district',id,true));

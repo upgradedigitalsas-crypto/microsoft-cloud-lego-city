@@ -1,0 +1,68 @@
+{
+  "copilotStudio": {
+    "source": "https://www.microsoft.com/en-us/microsoft-365/microsoft-365-enterprise",
+    "title": "Copilot Studio",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/842351-microsoft-copilot-studio-product-tour-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "copilot": {
+    "source": "https://www.microsoft.com/en-us/microsoft-365-copilot/business",
+    "title": "Solve complex work tasks in one place",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/M365-copilot_video_en-us-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "secCopilot": {
+    "source": "https://www.microsoft.com/en-us/security/business/ai-machine-learning/microsoft-security-copilot",
+    "title": "Microsoft Security Copilot",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/msft-security-copilot-desire-agent-automation-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "m365": {
+    "source": "https://www.microsoft.com/en-us/microsoft-365/microsoft-365-enterprise",
+    "title": "Microsoft apps",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/3625053-microsoft-365-apps-mobile-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "dynamics": {
+    "source": "https://www.microsoft.com/en-us/dynamics-365",
+    "title": "D365 with Copilot and Agents Sizzle Animation",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/917303-CopilotAndAgentSizzle-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "power": {
+    "source": "https://www.microsoft.com/en-us/power-platform",
+    "title": "Power Platform video",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/780952-PowerPlatformSizzle-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "azuredata": {
+    "source": "https://azure.microsoft.com/en-us/products/ai-foundry",
+    "title": "Foundry-video",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/RF-MicrosoftFoundry-Social-Models-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "fabric": {
+    "source": "https://www.microsoft.com/en-us/microsoft-fabric",
+    "title": "Introducing Fabric",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/rf-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "entra": {
+    "source": "https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id",
+    "title": "Microsoft entra id",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/126400-microsoft-entra-id-hero-video-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "sentinel": {
+    "source": "https://www.microsoft.com/en-us/security/business/siem-and-xdr/microsoft-sentinel",
+    "title": "Microsoft Sentinel",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/126600-sentinel-promo-hero_video_en-us-0x720-3266k",
+    "reviewed": "2026-10-18"
+  },
+  "purview": {
+    "source": "https://www.microsoft.com/en-us/security/business/microsoft-purview",
+    "title": "Microsoft Purview",
+    "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/640068-microsoft-purview-0x720-3266k",
+    "reviewed": "2026-10-18"
+  }
+}
