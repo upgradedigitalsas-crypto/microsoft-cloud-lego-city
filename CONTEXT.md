@@ -254,3 +254,5 @@ Limita el paso en lotes de edificios, terminal, pista y agua; permite la pasarel
 ITSE. Vehículos y clientes se detienen cerca del personaje controlado.
 Al perder foco o cancelar un toque se limpian los controles para evitar marcha
 involuntaria. El modo no crea personajes nuevos cada vez que se activa.
+
+El recorrido permite mirar arriba, abajo y a los lados arrastrando mouse o dedo. La inclinación está limitada a −60°/+80° para evitar inversiones; perder captura cancela el gesto. Versión: 20261017-walk-look-1.

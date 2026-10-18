@@ -27,5 +27,21 @@ emit(pads[0],'pointerdown',{pointerId:1});walk.update(.05);const touchZ=world.wa
 world.walker.group.position.set(8,.55,20);emit(window,'keydown',{key:'ArrowUp'});walk.update(.05);assert.equal(world.walker.group.position.z,20,'Lake blocks movement outside bridge');emit(window,'keyup',{key:'ArrowUp'});
 emit(window,'keydown',{key:'Escape'});assert.equal(walk.active,false);
 for(let i=0;i<100;i++){click('cam-walk');click('walk-exit');}assert.equal(scene.children.length,1,'Repeated entry reuses one client');
+
+click('cam-walk');
+const beforeLook=world.walker.group.position.clone();
+emit(controls.domElement,'pointerdown',{pointerId:9,clientX:100,clientY:100});
+emit(controls.domElement,'pointermove',{pointerId:9,clientX:150,clientY:-1000});walk.update(.05);
+assert.ok(controls.target.y>camera.position.y,'Upward drag looks at upper buildings');
+assert.ok(controls.target.x<camera.position.x,'Horizontal drag changes viewing direction');
+assert.equal(world.walker.group.position.x,beforeLook.x);assert.equal(world.walker.group.position.z,beforeLook.z);
+assert.ok(Math.hypot(controls.target.x-camera.position.x,controls.target.z-camera.position.z)>1,'Pitch limit avoids flipping');
+emit(controls.domElement,'pointermove',{pointerId:9,clientX:150,clientY:2000});walk.update(.05);
+assert.ok(controls.target.y<camera.position.y,'Downward drag looks down');
+emit(controls.domElement,'lostpointercapture',{pointerId:9});
+const directionY=controls.target.y-camera.position.y;
+emit(controls.domElement,'pointermove',{pointerId:9,clientX:150,clientY:-5000});walk.update(.05);
+assert.ok(Math.abs(controls.target.y-camera.position.y-directionY)<1e-9,'Capture loss ends looking');
+click('walk-exit');
 walk.dispose();click('cam-walk');assert.equal(walk.active,false,'Disposal removes input listeners');
 console.log('PASS airport spawn, keyboard/touch controls, wall/water bounds, blur/cancel, Escape, camera restore, reuse and cleanup');
