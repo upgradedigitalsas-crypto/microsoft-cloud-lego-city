@@ -265,3 +265,5 @@ Torre Art Deco LEGO con acabados gris acero, retranqueos y corona estriada. Seis
 Hover sobre edificios de portafolio: brackets cian, etiqueta glass y línea guía aun con etiquetas apagadas; raycast limitado a ~16 Hz. Clic encuadra al frente (+Z) según altura, ancho, FOV y aspect ratio, con margen 45%. Sin hover táctil ni durante recorrido o arrastre. Versión 20261017-hover-focus-1.
 
 Torre ITSE incluida en picking: hover con contorno y etiqueta, clic/etiqueta/botón encuadran frontalmente según FOV y pantalla. Staff alterna tecleo, llamadas y gestos; un trabajador por planta recorre 0.85 unidades del pasillo detrás del escritorio y regresa, sin crear actores por frame. Versión 20261017-itse-hover-life-1.
+
+Cámara orbital: permite mirar desde abajo (ángulo polar hasta 153°), acercamiento mínimo 6 y paneo en pantalla. Botones subir/bajar trasladan cámara y objetivo 4 unidades; suelo mínimo y=1.2 fuera del modo a pie. Toolbar desplazable para mantener accesibles las herramientas en pantallas cortas. Versión 20261017-camera-height-1.

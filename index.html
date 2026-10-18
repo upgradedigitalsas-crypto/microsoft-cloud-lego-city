@@ -7,36 +7,36 @@
   <meta name="description" content="Arquitectura Estratégica del Portafolio Microsoft Cloud y Modelo As-a-Service: ciudad LEGO 3D interactiva con la operación en tiempo real." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-  <link rel="stylesheet" href="css/styles.css?v=20261017-itse-hover-life-1" />
+  <link rel="stylesheet" href="css/styles.css?v=20261017-camera-height-1" />
   <script type="importmap">
   {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
     "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-    "./js/walk.js": "./js/walk.js?v=20261017-itse-hover-life-1",
-    "./js/navigation.js": "./js/navigation.js?v=20261017-itse-hover-life-1",
-    "./js/itse-tower.js": "./js/itse-tower.js?v=20261017-itse-hover-life-1",
-    "./js/intro-tunnel.js": "./js/intro-tunnel.js?v=20261017-itse-hover-life-1",
-    "./js/intro.js": "./js/intro.js?v=20261017-itse-hover-life-1",
-    "./js/intro-scene.js": "./js/intro-scene.js?v=20261017-itse-hover-life-1",
-    "./js/night-lighting.js": "./js/night-lighting.js?v=20261017-itse-hover-life-1",
-    "./js/airport.js": "./js/airport.js?v=20261017-itse-hover-life-1",
-    "./js/security-life.js": "./js/security-life.js?v=20261017-itse-hover-life-1",
-    "./js/audio.js": "./js/audio.js?v=20261017-itse-hover-life-1",
-    "./js/beach.js": "./js/beach.js?v=20261017-itse-hover-life-1",
-    "./js/city.js": "./js/city.js?v=20261017-itse-hover-life-1",
-    "./js/customers.js": "./js/customers.js?v=20261017-itse-hover-life-1",
-    "./js/data.js": "./js/data.js?v=20261017-itse-hover-life-1",
-    "./js/ecosystem.js": "./js/ecosystem.js?v=20261017-itse-hover-life-1",
-    "./js/executive.js": "./js/executive.js?v=20261017-itse-hover-life-1",
-    "./js/landscape.js": "./js/landscape.js?v=20261017-itse-hover-life-1",
-    "./js/lego.js": "./js/lego.js?v=20261017-itse-hover-life-1",
-    "./js/main.js": "./js/main.js?v=20261017-itse-hover-life-1",
-    "./js/picking.js": "./js/picking.js?v=20261017-itse-hover-life-1",
-    "./js/proposal.js": "./js/proposal.js?v=20261017-itse-hover-life-1",
-    "./js/sim.js": "./js/sim.js?v=20261017-itse-hover-life-1",
-    "./js/terrain.js": "./js/terrain.js?v=20261017-itse-hover-life-1",
-    "./js/urban.js": "./js/urban.js?v=20261017-itse-hover-life-1"
+    "./js/walk.js": "./js/walk.js?v=20261017-camera-height-1",
+    "./js/navigation.js": "./js/navigation.js?v=20261017-camera-height-1",
+    "./js/itse-tower.js": "./js/itse-tower.js?v=20261017-camera-height-1",
+    "./js/intro-tunnel.js": "./js/intro-tunnel.js?v=20261017-camera-height-1",
+    "./js/intro.js": "./js/intro.js?v=20261017-camera-height-1",
+    "./js/intro-scene.js": "./js/intro-scene.js?v=20261017-camera-height-1",
+    "./js/night-lighting.js": "./js/night-lighting.js?v=20261017-camera-height-1",
+    "./js/airport.js": "./js/airport.js?v=20261017-camera-height-1",
+    "./js/security-life.js": "./js/security-life.js?v=20261017-camera-height-1",
+    "./js/audio.js": "./js/audio.js?v=20261017-camera-height-1",
+    "./js/beach.js": "./js/beach.js?v=20261017-camera-height-1",
+    "./js/city.js": "./js/city.js?v=20261017-camera-height-1",
+    "./js/customers.js": "./js/customers.js?v=20261017-camera-height-1",
+    "./js/data.js": "./js/data.js?v=20261017-camera-height-1",
+    "./js/ecosystem.js": "./js/ecosystem.js?v=20261017-camera-height-1",
+    "./js/executive.js": "./js/executive.js?v=20261017-camera-height-1",
+    "./js/landscape.js": "./js/landscape.js?v=20261017-camera-height-1",
+    "./js/lego.js": "./js/lego.js?v=20261017-camera-height-1",
+    "./js/main.js": "./js/main.js?v=20261017-camera-height-1",
+    "./js/picking.js": "./js/picking.js?v=20261017-camera-height-1",
+    "./js/proposal.js": "./js/proposal.js?v=20261017-camera-height-1",
+    "./js/sim.js": "./js/sim.js?v=20261017-camera-height-1",
+    "./js/terrain.js": "./js/terrain.js?v=20261017-camera-height-1",
+    "./js/urban.js": "./js/urban.js?v=20261017-camera-height-1"
   }
 }
   </script>
@@ -141,6 +141,8 @@
     <div class="cam-tools glass">
       <button id="cam-zin" title="Acercar" aria-label="Acercar"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
       <button id="cam-zout" title="Alejar" aria-label="Alejar"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
+      <button id="cam-up" title="Subir punto de vista" aria-label="Subir punto de vista"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V4m-6 6 6-6 6 6M4 20h16"/></svg></button>
+      <button id="cam-down" title="Bajar punto de vista" aria-label="Bajar punto de vista"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m-6-6 6 6 6-6M4 4h16"/></svg></button>
       <button id="cam-rl" title="Rotar izquierda" aria-label="Rotar izquierda"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg></button>
       <button id="cam-rr" title="Rotar derecha" aria-label="Rotar derecha"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10a9 9 0 1 0-2 8M21 4v6h-6"/></svg></button>
       <button id="cam-home" title="Vista general" aria-label="Vista general"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -203,6 +205,6 @@
     </section>
   </div>
 
-  <script type="module" src="js/intro.js?v=20261017-itse-hover-life-1"></script>
+  <script type="module" src="js/intro.js?v=20261017-camera-height-1"></script>
 </body>
 </html>

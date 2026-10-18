@@ -56,8 +56,10 @@ controls.zoomSpeed = 1.0;
 controls.addEventListener('start', () => { state.camTarget = null; });
 controls.dampingFactor = 0.12;
 controls.target.copy(DEFAULT_TARGET);
-controls.maxPolarAngle = Math.PI / 2.08;
-controls.minDistance = 25;
+controls.maxPolarAngle = Math.PI * .85;
+controls.enablePan = true;
+controls.screenSpacePanning = true;
+controls.minDistance = 6;
 controls.maxDistance = 600;
 const navigation=smoothNavigation(camera,controls,renderer.domElement,()=>{state.camTarget=null;});
 
@@ -1198,6 +1200,16 @@ function showToast() {}
 // ---------------------------------------------------------------------------
 // 12. Controles de Cámara (HUD Lateral)
 // ---------------------------------------------------------------------------
+function shiftViewHeight(direction){
+  if(walk.active)return;
+  navigation.cancel();state.camTarget=null;
+  const step=direction*4;
+  const delta=Math.max(1.2-camera.position.y,Math.min(200-camera.position.y,step));
+  camera.position.y+=delta;controls.target.y+=delta;
+  controls.update();
+}
+document.getElementById('cam-up').addEventListener('click',()=>shiftViewHeight(1));
+document.getElementById('cam-down').addEventListener('click',()=>shiftViewHeight(-1));
 document.getElementById('cam-zin')?.addEventListener('click', () => {
   const dir = controls.target.clone().sub(camera.position).normalize();
   camera.position.addScaledVector(dir, 18);
@@ -1308,7 +1320,7 @@ function animate() {
   // Actualizar cámara si está en transición
   updateCameraAnimation(dt);
   navigation.update(dt);
-  if(!walk.active)controls.update();
+  if(!walk.active){controls.update();if(camera.position.y<1.2){camera.position.y=1.2;camera.lookAt(controls.target);}}
 
   // Animaciones del mundo LEGO
   world.anims.forEach(fn => fn(t, dt));

@@ -585,3 +585,6 @@ body.hide-city-labels:not(.walking) #labels-3d.has-hover{display:block!important
 body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important;}
 .blabel.hovered{outline:2px solid #79F6F5;box-shadow:0 4px 20px #16305040;}
 .label-leader.hovered{height:2px;background:#79F6F5;}
+
+.cam-tools{max-height:calc(100dvh - 180px);overflow-y:auto;scrollbar-width:thin;}
+@media(max-width:900px){.cam-tools{max-height:calc(100dvh - 110px);}}
