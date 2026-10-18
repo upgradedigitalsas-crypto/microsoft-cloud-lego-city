@@ -1195,7 +1195,9 @@ function toggleDayNight() {
   nightLighting.set(state.isNight);
   document.getElementById('cam-night').setAttribute('aria-pressed',String(state.isNight));
   document.body.classList.toggle('night', state.isNight);
-  document.getElementById('cam-night').textContent = state.isNight ? '☼' : '☾';
+  const nightAction=state.isNight?'Activar modo diurno':'Activar modo nocturno';
+  document.getElementById('cam-night').setAttribute('aria-label',nightAction);
+  document.getElementById('cam-night').title=nightAction;
 
   if (state.isNight) {
     scene.background.set('#0E1626');

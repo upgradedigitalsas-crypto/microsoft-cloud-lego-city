@@ -572,3 +572,11 @@ body.night .topbar.glass { background:rgba(226,237,255,.79);border-color:rgba(25
 .walking #labels-3d{display:none!important;}.walking .cam-tools button:not(#cam-walk):not(#cam-night){display:none;}
 #cam-walk[aria-pressed="true"]{background:#DDD0FF;color:#5900ff;}
 @media(max-width:639px){#walk-panel{left:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:10px;}#walk-panel p{max-width:260px;font-size:11px;}}
+
+/* Consistent vector toolbar icons; no font-dependent glyphs. */
+.cam-tools button{display:grid;place-items:center;flex-shrink:0;}
+.cam-tools button svg{width:22px;height:22px;pointer-events:none;}
+.cam-tools button:focus-visible{outline:2px solid #5900ff;outline-offset:2px;}
+#cam-night .icon-sun{display:none;}
+#cam-night[aria-pressed="true"] .icon-moon{display:none;}
+#cam-night[aria-pressed="true"] .icon-sun{display:inline;}

@@ -256,3 +256,5 @@ Al perder foco o cancelar un toque se limpian los controles para evitar marcha
 involuntaria. El modo no crea personajes nuevos cada vez que se activa.
 
 El recorrido permite mirar arriba, abajo y a los lados arrastrando mouse o dedo. La inclinación está limitada a −60°/+80° para evitar inversiones; perder captura cancela el gesto. Versión: 20261017-walk-look-1.
+
+Barra vertical: iconos SVG locales coherentes (zoom, rotación, encuadre, muñeco amarillo de recorrido, edificio, avión, escudo, etiquetas y luna/sol). Todos tienen nombres accesibles; día/noche conserva el SVG y actualiza su estado. Versión 20261017-icons-1.
