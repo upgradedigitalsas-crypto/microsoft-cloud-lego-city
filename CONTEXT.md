@@ -267,3 +267,5 @@ Hover sobre edificios de portafolio: brackets cian, etiqueta glass y línea guí
 Torre ITSE incluida en picking: hover con contorno y etiqueta, clic/etiqueta/botón encuadran frontalmente según FOV y pantalla. Staff alterna tecleo, llamadas y gestos; un trabajador por planta recorre 0.85 unidades del pasillo detrás del escritorio y regresa, sin crear actores por frame. Versión 20261017-itse-hover-life-1.
 
 Cámara orbital: permite mirar desde abajo (ángulo polar hasta 153°), acercamiento mínimo 6 y paneo en pantalla. Botones subir/bajar trasladan cámara y objetivo 4 unidades; suelo mínimo y=1.2 fuera del modo a pie. Toolbar desplazable para mantener accesibles las herramientas en pantallas cortas. Versión 20261017-camera-height-1.
+
+Barra de herramientas sin scrollbar visible: conserva desplazamiento nativo con rueda, trackpad y toque. En pantallas bajas, la fila horizontal permite deslizar y convierte la rueda vertical a desplazamiento horizontal. Versión 20261017-toolbar-slide-1.

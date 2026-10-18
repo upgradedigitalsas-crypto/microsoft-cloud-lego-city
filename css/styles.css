@@ -586,5 +586,8 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .blabel.hovered{outline:2px solid #79F6F5;box-shadow:0 4px 20px #16305040;}
 .label-leader.hovered{height:2px;background:#79F6F5;}
 
-.cam-tools{max-height:calc(100dvh - 180px);overflow-y:auto;scrollbar-width:thin;}
+.cam-tools{max-height:calc(100dvh - 180px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain;touch-action:pan-y;}
+.cam-tools::-webkit-scrollbar{display:none;width:0;height:0;}
 @media(max-width:900px){.cam-tools{max-height:calc(100dvh - 110px);}}
+
+@media(max-height:550px) and (max-width:900px){.cam-tools{max-width:calc(100vw - 16px);overflow-x:auto;overflow-y:hidden;touch-action:pan-x;}}

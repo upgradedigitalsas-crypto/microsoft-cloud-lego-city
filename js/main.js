@@ -1200,6 +1200,16 @@ function showToast() {}
 // ---------------------------------------------------------------------------
 // 12. Controles de Cámara (HUD Lateral)
 // ---------------------------------------------------------------------------
+// Native wheel/touch scrolling without a visible scrollbar. Short screens use a horizontal rail.
+const cameraToolbar=document.querySelector('.cam-tools');
+cameraToolbar.addEventListener('wheel',event=>{
+  if(cameraToolbar.scrollWidth<=cameraToolbar.clientWidth)return;
+  if(Math.abs(event.deltaY)<=Math.abs(event.deltaX))return;
+  event.preventDefault();
+  const unit=event.deltaMode===1?16:event.deltaMode===2?cameraToolbar.clientWidth:1;
+  cameraToolbar.scrollLeft+=event.deltaY*unit;
+},{passive:false});
+
 function shiftViewHeight(direction){
   if(walk.active)return;
   navigation.cancel();state.camTarget=null;
