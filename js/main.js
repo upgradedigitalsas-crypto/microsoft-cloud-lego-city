@@ -141,6 +141,17 @@ DISTRICTS.forEach(d => {
   districtLabels.set(d.id, { el, leader, width: 150, height: 36, pos: new THREE.Vector3(d.pos[0], world.buildings.get(d.id).height + 3, d.pos[1]) });
 });
 
+const itseLabel=document.createElement('button');itseLabel.type='button';itseLabel.className='blabel';itseLabel.textContent='ITSE · Equipos y servicios';itseLabel.setAttribute('aria-label','Ver torre ITSE de frente');itseLabel.addEventListener('click',focusITSETower);
+const itseLeader=document.createElement('div');itseLeader.className='label-leader';labelsContainer.append(itseLeader,itseLabel);
+districtLabels.set('itse-tower',{el:itseLabel,leader:itseLeader,width:190,height:36,pos:new THREE.Vector3(0,world.itseTower.height+3,0)});
+function focusITSETower(){
+  selectEntity(null,null);audio.click();
+  const h=world.itseTower.height,halfFov=THREE.MathUtils.degToRad(camera.fov/2);
+  const distance=Math.max(h/2/Math.tan(halfFov),11/(Math.tan(halfFov)*camera.aspect))*1.35+10;
+  const target=new THREE.Vector3(0,h/2,0);
+  flyCameraTo(new THREE.Vector3(0,h/2+distance*.08,Math.max(25,distance)),target,1);
+}
+
 // Cache label dimensions on font/viewport changes instead of measuring every frame.
 const labelObserver = new ResizeObserver(entries => {
   for (const entry of entries) {
@@ -258,6 +269,7 @@ const mouse = new THREE.Vector2();
 const pickables = [...sim.customers.meshes];
 world.beach.group.traverse(o => { if(o.isMesh) pickables.push(o); });
 world.buildings.forEach(b => pickables.push(...b.meshes));
+world.itseTower.group.traverse(o=>{if(o.isMesh){o.userData.landmark='itse-tower';pickables.push(o);}});
 sim.all().forEach(v => v.group.traverse(o => {
   if (o.isMesh && o !== v.group.userData.beam) pickables.push(o);
 }));
@@ -268,7 +280,7 @@ function setHovered(id){
   renderer.domElement.style.cursor=id?'pointer':'';
   labelsContainer.classList.toggle('has-hover',Boolean(id));
   districtLabels.forEach(({el,leader},key)=>{el.classList.toggle('hovered',key===id);leader.classList.toggle('hovered',key===id);});
-  if(id){const b=world.buildings.get(id);hoverBox.position.set(b.group.position.x,b.height/2+.2,b.group.position.z);hoverBox.scale.set(b.size.x+2,b.size.y+1,b.size.z+2);}
+  if(id){const b=id==='itse-tower'?{group:world.itseTower.group,height:world.itseTower.height,size:new THREE.Vector3(22,world.itseTower.height,20)}:world.buildings.get(id);hoverBox.position.set(b.group.position.x,b.height/2+.2,b.group.position.z);hoverBox.scale.set(b.size.x+2,b.size.y+1,b.size.z+2);}
 }
 function hoverAt(e){
   if(walk.active||e.pointerType==='touch'||e.buttons){setHovered(null);return;}
@@ -276,7 +288,7 @@ function hoverAt(e){
   const ndc=pointerNDC(e.clientX,e.clientY,renderer.domElement.getBoundingClientRect());if(!ndc){setHovered(null);return;}
   mouse.set(ndc.x,ndc.y);camera.updateMatrixWorld();raycaster.setFromCamera(mouse,camera);
   const hit=raycaster.intersectObjects(pickables,false).find(h=>h.object.visible&&(h.object.material.opacity===undefined||h.object.material.opacity>.05));
-  const id=hit?.object.userData.entityId;setHovered(world.buildings.has(id)?id:null);
+  const id=hit?.object.userData.entityId;setHovered(hit?.object.userData.landmark==='itse-tower'?'itse-tower':world.buildings.has(id)?id:null);
 }
 renderer.domElement.addEventListener('pointerleave',e=>{if(!e.relatedTarget?.closest?.('.blabel'))setHovered(null);});
 districtLabels.forEach(({el},id)=>{el.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch'&&!walk.active)setHovered(id);});el.addEventListener('pointerleave',()=>setHovered(null));});
@@ -308,6 +320,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   // One distance-sorted query respects occlusion across vehicles and buildings.
   const hit = raycaster.intersectObjects(pickables, false).find(h =>
     h.object.visible && (h.object.material.opacity === undefined || h.object.material.opacity > 0.05));
+  if(hit?.object.userData.landmark==='itse-tower'){focusITSETower();return;}
   if (hit?.object.userData.landmark === 'beach') { openBeach(); return; }
   const id = hit?.object.userData.customerIds?.[hit.instanceId] || hit?.object.userData.entityId;
   if (id) selectEntity(world.buildings.has(id) ? 'district' : 'vehicle', id);
@@ -1461,7 +1474,7 @@ function openLivingScene(kind) {
 document.getElementById('cam-airport').onclick=()=>openLivingScene('airport');
 document.getElementById('cam-security').onclick=()=>openLivingScene('security');
 
-document.getElementById('cam-itse').onclick=()=>{selectEntity(null,null);flyCameraTo(new THREE.Vector3(78,63,110),new THREE.Vector3(0,26,0),1);};
+document.getElementById('cam-itse').onclick=focusITSETower;
 
 const labelsToggle=document.getElementById('labels-toggle');
 function setLabelsHidden(hidden){

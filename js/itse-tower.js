@@ -35,7 +35,7 @@ export function buildITSETower(scene, world, studs) {
       block({x,z:z+.28,y:base+1.1,w:.78,d:.04,h:.4,mat:plastic(color,{emissive:color,emissiveIntensity:.6}),studs:false});
       block({x,z:z+.8,y:base+1.02,w:.75,d:.3,h:.05,color:'#546276',studs:false});
       const person=minifig(color,'#263243');person.scale.setScalar(.57);person.position.set(x,base+.24,z-.35);group.add(person);
-      staff.push({person,phase:index*1.3+i});
+      staff.push({person,phase:index*1.3+i,role:index,station:i,origin:person.position.clone()});
       if(index===0){ // Headsets distinguish the help desk.
         const headset=new THREE.Mesh(new THREE.TorusGeometry(.33,.045,5,12,Math.PI),plastic('#202A38'));
         headset.position.y=2.44;person.add(headset);
@@ -130,6 +130,28 @@ export function buildITSETower(scene, world, studs) {
   image.src=new URL('../assets/itse-logo.png',import.meta.url).href;
   // Art Deco crown: stepped metallic LEGO ribs below the antenna.
   for(const x of [-1.5,0,1.5])block({x,y:y+1,w:.3,d:4.2,h:3.8,color:'#E0E5EB',studs:false});
-  world.anims.push(t=>{for(const {person,phase} of staff){person.userData.arms.forEach((arm,i)=>{arm.rotation.x=-.5+Math.sin(t*2.6+phase+i)*.12;});}});
+  world.anims.push(t=>{
+    for(const {person,phase,role,station,origin} of staff){
+      const cycle=(t*.22+phase)%(Math.PI*2);
+      // Alternating typing, listening and explaining, with independent timing.
+      const explaining=(role===2||role===3||role===4)&&Math.sin(cycle)>.15;
+      person.rotation.y=Math.sin(t*.65+phase)*(explaining?.32:.1);
+      person.position.y=origin.y+Math.sin(t*1.5+phase)*.018;
+      person.userData.arms.forEach((arm,i)=>{
+        arm.rotation.x=explaining?-.65+Math.sin(t*2+phase+i)*.45:-.55+Math.sin(t*5.5+phase+i*1.6)*.22;
+        arm.rotation.z=(i===0?1:-1)*(explaining?.35+Math.sin(t*1.6+phase)*.2:.15);
+      });
+      if(role===0&&station===0){person.userData.arms[0].rotation.x=-1.7+Math.sin(t+phase)*.12;}
+      // Short unobstructed aisle behind the desk: step back, turn and return.
+      if(station===2){
+        const progress=(t+phase*3)%18;
+        const retreat=progress<3?progress/3:progress<6?1:progress<9?1-(progress-6)/3:0;
+        const moving=progress<3||(progress>=6&&progress<9);
+        person.position.z=origin.z-retreat*.85;
+        person.userData.legs.forEach((leg,i)=>{leg.rotation.x=moving?Math.sin(t*8+phase+i*Math.PI)*.3:0;});
+        person.rotation.y+=retreat*.65;
+      }
+    }
+  });
   world.itseTower={group,height:y+14,windowMaterial,logo,staff,departments:departments.map(d=>d[0])};
 }

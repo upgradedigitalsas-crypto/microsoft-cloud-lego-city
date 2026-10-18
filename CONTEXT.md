@@ -263,3 +263,5 @@ Barra vertical: iconos SVG locales coherentes (zoom, rotación, encuadre, muñec
 Torre Art Deco LEGO con acabados gris acero, retranqueos y corona estriada. Seis pisos abiertos al frente muestran 18 minifiguras animadas: Soporte/Mesa de ayuda, Ciberseguridad, Comercial, C-LEVELS, Entrenamiento y Development Seniors IA. Cada piso lleva rótulo, estaciones y monitores; soporte tiene auriculares y SOC/IA racks. Mantiene altura, logo, pasarela, parqueadero y límites de navegación. Versión 20261017-itse-staff-1.
 
 Hover sobre edificios de portafolio: brackets cian, etiqueta glass y línea guía aun con etiquetas apagadas; raycast limitado a ~16 Hz. Clic encuadra al frente (+Z) según altura, ancho, FOV y aspect ratio, con margen 45%. Sin hover táctil ni durante recorrido o arrastre. Versión 20261017-hover-focus-1.
+
+Torre ITSE incluida en picking: hover con contorno y etiqueta, clic/etiqueta/botón encuadran frontalmente según FOV y pantalla. Staff alterna tecleo, llamadas y gestos; un trabajador por planta recorre 0.85 unidades del pasillo detrás del escritorio y regresa, sin crear actores por frame. Versión 20261017-itse-hover-life-1.
