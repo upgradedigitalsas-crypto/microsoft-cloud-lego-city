@@ -22,7 +22,7 @@ export function createArrival(camera,controls,audio,onFinish){
   heardCaptain ||= Boolean(audio.speaking);
   // Keep flying throughout the narration, including longer synthesized voices.
   // Reduced motion uses a gentle arc instead of freezing the window view.
-  const angle=elapsed*(reduced?.012:Math.PI*2/30);
+  const angle=-elapsed*(reduced?.012:Math.PI*2/30);
   position.set(25+340*Math.cos(angle),115+8*Math.sin(angle*.5),10+340*Math.sin(angle));
   target.set(25,12,10);
   camera.position.copy(position);controls.target.copy(target);camera.lookAt(target);

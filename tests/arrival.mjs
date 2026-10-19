@@ -12,7 +12,7 @@ assert.doesNotMatch(mainSource,/new BrickAudio/);
 const {createArrival}=await import('data:text/javascript;base64,'+Buffer.from(source.replace("import { CAPTAIN_LINES } from './captain-lines.js';", "const CAPTAIN_LINES=['uno','dos'];")).toString('base64'));
 const camera={position:new V(),lookAt(){}},controls={enabled:true,target:new V()},audio={lines:['uno','dos'],speaking:true,captionStarted:true};let finished=0;
 const tour=createArrival(camera,controls,audio,()=>finished++);
-assert.ok(stage.inert&&!controls.enabled);tour.update(10);assert.ok(camera.position.x<0);
+assert.ok(stage.inert&&!controls.enabled);tour.update(1);assert.ok(camera.position.z<10,'Flight direction is reversed for the left window');tour.update(9);assert.ok(camera.position.x<0);
 const event=new Event('captain-caption');event.detail='Mensaje sincronizado';window.dispatchEvent(event);tour.update(.1);assert.equal(subtitle.textContent,event.detail);
 tour.update(30);const before={...camera.position};tour.update(1);assert.notDeepEqual(camera.position,before);assert.ok(tour.active,'Keeps flying after the former 34-second stop');
 audio.speaking=false;tour.update(.1);
