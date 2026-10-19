@@ -697,3 +697,15 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .aircraft-exterior{clip-path:ellipse(50% 50% at 50% 50%);}
 .captain-subtitle{bottom:13%;width:min(620px,88%);}
 @media(prefers-reduced-motion:reduce){.start-fill,.start-arrow,.start-label{transition:none;}}
+
+.intro-audio-start{background:rgba(0,0,0,.94);isolation:isolate;backdrop-filter:blur(6px);}
+.welcome-wave{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;opacity:.8;}
+.intro-audio-start::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,#0009 0%,#0003 55%,#0008 100%);}
+.intro-audio-start p{text-shadow:0 2px 8px #000;}
+
+.intro-audio-start button.is-starting .start-fill{width:calc(100% - 10px);}
+.intro-audio-start button.is-starting .start-arrow{transform:translateX(.4rem);}
+.intro-audio-start button.is-starting .start-label{color:white;}
+.intro-audio-start button:disabled{opacity:1;cursor:progress;}
+.intro-audio-start .start-fill{transition:width .5s ease;}
+.intro-audio-start .start-arrow{transition:transform .5s ease;}

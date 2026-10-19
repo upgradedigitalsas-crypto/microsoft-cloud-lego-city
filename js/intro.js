@@ -45,17 +45,20 @@ function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=en
 const welcome=document.createElement('div');welcome.className='intro-audio-start';
 welcome.innerHTML='<button type="button"><span class="start-fill" aria-hidden="true"></span><svg class="start-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><span class="start-label">Comenzar con sonido</span></button><p>Escucha la bienvenida de nuestra capitana y el ambiente de la ciudad.</p>';
 overlay.append(welcome);
+let disposeWave=null;
+import('./particle-wave.js').then(({createParticleWave})=>{if(!entered&&!closed)try{disposeWave=createParticleWave(welcome);}catch{/* Keep the start button available without WebGL. */}}).catch(()=>{});
 welcome.querySelector('button').addEventListener('click',async()=>{
  // Unlock during this deliberate gesture, before any cinematic timer runs.
  soundscape.enabled=true;
  const unlocking=soundscape.unlock();
+ welcome.querySelector('button').classList.add('is-starting');
  welcome.querySelector('button').disabled=true;
- await unlocking;
- soundscape.start();entered=true;started=performance.now();welcome.remove();
+ await Promise.all([unlocking,new Promise(resolve=>setTimeout(resolve,reduce.matches?0:560))]);
+ soundscape.start();disposeWave?.();entered=true;started=performance.now();welcome.remove();
  if(skipped&&ready)finish();
 });
 raf=requestAnimationFrame(frame);
 if(skipped){skip.textContent='Abriendo ciudad…';skip.disabled=true;loadCity();}
 else import('./intro-scene.js').then(({createIntroScene})=>{if(closed||skipped)return;try{film=createIntroScene(stage);started=performance.now();}catch{skipped=true;loadCity();}}).catch(()=>{skipped=true;loadCity();});
-window.addEventListener('pagehide',e=>{cancelAnimationFrame(raf);if(!e.persisted){film?.dispose();if(!ready)soundscape.dispose();window.removeEventListener('resize',resize);}});
+window.addEventListener('pagehide',e=>{if(!e.persisted)disposeWave?.();cancelAnimationFrame(raf);if(!e.persisted){film?.dispose();if(!ready)soundscape.dispose();window.removeEventListener('resize',resize);}});
 window.addEventListener('pageshow',e=>{if(e.persisted&&!closed)raf=requestAnimationFrame(frame);});
