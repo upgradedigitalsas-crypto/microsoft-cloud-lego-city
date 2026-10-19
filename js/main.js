@@ -21,9 +21,9 @@ import { CITY_STORIES, initExecutiveTour } from './executive.js';
 import { BOULEVARD } from './urban.js';
 import { SERVICE_ROLES, CUSTOMER_STATES } from './ecosystem.js';
 import { pointerNDC } from './picking.js';
-import { BrickAudio } from './audio.js';
+import { soundscape as audio } from './soundscape.js';
 import { optimization, bundle, printProposal } from './proposal.js';
-const audio = new BrickAudio();
+
 const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // ---------------------------------------------------------------------------

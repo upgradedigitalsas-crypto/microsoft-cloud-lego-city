@@ -17,11 +17,11 @@ class Soundscape extends BrickAudio {
  async speak(){
   if(!this.arrived||this.spoken||!this.enabled||this.context?.state!=='running' )return;
   this.spoken=true;this.speaking=true;
-  await this.recordingReady;
+  await Promise.race([this.recordingReady,new Promise(resolve=>setTimeout(resolve,1200))]);
   if(!this.speaking||!this.enabled)return;
   if(this.recording){
    const {player,captions}=this.recording;let current=-1;
-   player.ontimeupdate=()=>{const i=captions.findIndex(c=>player.currentTime>=c.start&&player.currentTime<c.end);if(i>=0&&i!==current){current=i;window.dispatchEvent(new CustomEvent('captain-caption',{detail:captions[i].text}));}};
+   player.ontimeupdate=()=>{const i=captions.findIndex(c=>player.currentTime>=c.start&&player.currentTime<c.end);if(i>=0&&i!==current){current=i;this.captionStarted=true;window.dispatchEvent(new CustomEvent('captain-caption',{detail:captions[i].text}));}};
    player.onended=()=>{this.speaking=false;};player.onerror=()=>{this.speaking=false;};
    try{await player.play();return;}catch{player.pause();}
   }
@@ -31,7 +31,7 @@ class Soundscape extends BrickAudio {
    if(!this.enabled||!this.speaking)return;
    if(i>=this.lines.length){this.speaking=false;return;}
    const line=this.lines[i++],speech=new SpeechSynthesisUtterance(line);speech.lang='es-CO';speech.rate=.96;speech.volume=.8;
-   speech.onstart=()=>window.dispatchEvent(new CustomEvent('captain-caption',{detail:line}));
+   speech.onstart=()=>{this.captionStarted=true;window.dispatchEvent(new CustomEvent('captain-caption',{detail:line}));};
    speech.onend=next;speech.onerror=()=>{this.speaking=false;};window.speechSynthesis.speak(speech);
   };next();
  }

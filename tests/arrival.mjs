@@ -6,8 +6,11 @@ globalThis.window=new EventTarget();window.speechSynthesis={cancel(){}};globalTh
 globalThis.document={hidden:false,body:{append(){},classList:{add(){},remove(){}}},getElementById:()=>stage,querySelector:()=>header,createElement:()=>({setAttribute(){},querySelector:s=>s==='p'?subtitle:button,remove(){removed=true;}})};
 globalThis.arrivalTHREE={Vector3:V};
 const source=(await readFile(new URL('../js/arrival.js',import.meta.url),'utf8')).replace("import * as THREE from 'three';","const THREE=globalThis.arrivalTHREE;");
-const {createArrival}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
-const camera={position:new V(),lookAt(){}},controls={enabled:true,target:new V()},audio={lines:['uno','dos'],speaking:true};let finished=0;
+const mainSource=await readFile(new URL('../js/main.js',import.meta.url),'utf8');
+assert.match(mainSource,/import \{ soundscape as audio \} from/);
+assert.doesNotMatch(mainSource,/new BrickAudio/);
+const {createArrival}=await import('data:text/javascript;base64,'+Buffer.from(source.replace("import { CAPTAIN_LINES } from './captain-lines.js';", "const CAPTAIN_LINES=['uno','dos'];")).toString('base64'));
+const camera={position:new V(),lookAt(){}},controls={enabled:true,target:new V()},audio={lines:['uno','dos'],speaking:true,captionStarted:true};let finished=0;
 const tour=createArrival(camera,controls,audio,()=>finished++);
 assert.ok(stage.inert&&!controls.enabled);tour.update(10);assert.ok(camera.position.x<0);
 const event=new Event('captain-caption');event.detail='Mensaje sincronizado';window.dispatchEvent(event);tour.update(.1);assert.equal(subtitle.textContent,event.detail);
@@ -19,3 +22,5 @@ const gentle=createArrival(camera,controls,audio,()=>finished++);gentle.update(1
 document.hidden=true;const hidden={...camera.position};gentle.update(100);assert.equal(camera.position.z,hidden.z);assert.ok(gentle.active);document.hidden=false;gentle.dispose();
 audio.speaking=false;const silent=createArrival(camera,controls,audio,()=>finished++);silent.update(5);assert.equal(subtitle.textContent,'dos');silent.update(5);assert.ok(!silent.active,'Silent captions finish without hanging');
 console.log('PASS continuous flight, captions, narration completion, reduced motion, hidden tab and silent fallback');
+
+const legacy=createArrival(camera,controls,{speaking:false},()=>{});assert.ok(legacy.active);button.onclick();assert.ok(!legacy.active,'Skip works even without audio lines');

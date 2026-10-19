@@ -287,3 +287,6 @@ Servicio Vercel `itse-cloud-city-voice`, función `api/captain`, clave sensible 
 
 ### Llegada desde la ventanilla — 2026-10-18
 La cámara mantiene una órbita continua mientras habla la capitana; termina con la locución, sin quedarse detenida al concluir una trayectoria fija. El reloj cinematográfico usa el tiempo real del fotograma independientemente del límite de simulación. Movimiento reducido conserva un arco suave. Sin audio se muestran subtítulos temporizados; Escape y Saltar llegada siguen disponibles. La intro respeta el foco y bloqueo de controles de la llegada.
+
+### Corrección de conexión de llegada — 2026-10-18
+`main.js` utiliza la misma instancia `soundscape` que la intro. Antes pasaba `BrickAudio` a `createArrival`, provocando una excepción al consultar `lines` después de mostrar la ventanilla: no llegaba a registrar el botón ni devolver la animación. Prueba de regresión de conexión y líneas de respaldo añadidas. La narración espera como máximo 1,2 segundos adicionales por ElevenLabs antes de recurrir a voz del navegador. Subtítulos temporizados visibles mientras empieza la voz. Cabina y ala con juntas, studs y contorno escalonado.

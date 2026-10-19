@@ -649,3 +649,13 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .arrival-skip:focus-visible{outline:3px solid #79f6f5;outline-offset:3px;}
 .arrival-active .topbar,.arrival-active .cam-tools,.arrival-active #labels-3d{visibility:hidden;}
 @media(max-width:639px){.aircraft-rim{inset:8% 4%;border-width:12px;}.captain-subtitle{bottom:16%;width:80%;}.aircraft-wing{right:5%;bottom:34%;}}
+
+/* Molded brick cabin and stepped studded wing for the LEGO arrival. */
+.aircraft-cabin{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 57%,#25304b 58%);}
+.aircraft-rim{border-radius:22% / 25%;border:22px solid #bfcbdc;box-shadow:inset 0 0 0 6px #687d99,inset 0 10px 15px #17202f70,0 0 0 150vmax #26354b;}
+.aircraft-rim::after{content:'';position:absolute;inset:-22px;pointer-events:none;border:10px dotted #e4ebf5;border-radius:22% / 25%;filter:drop-shadow(0 3px 1px #6b7c94);}
+.aircraft-cabin::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 12px 12px,#73839a 0 5px,#182338 6px,transparent 8px) 0 0/36px 36px;opacity:.25;}
+.aircraft-wing{z-index:1;right:10%;bottom:24%;width:30%;height:16%;opacity:1;transform:rotate(-8deg);clip-path:polygon(0 60%,18% 60%,18% 44%,36% 44%,36% 28%,54% 28%,54% 12%,100% 12%,100% 100%,0 100%);background:radial-gradient(ellipse at 12px 10px,#f6f8ff 0 5px,#8d9db6 6px 8px,transparent 9px) 0 0/28px 24px,repeating-linear-gradient(0deg,transparent 0 22px,#687990 23px 24px),linear-gradient(0deg,#5900ff 0 22%,#c7d4e5 23% 100%);filter:drop-shadow(0 7px 2px #192743);}
+.captain-subtitle{z-index:3;bottom:12%;padding:10px 16px;background:#08132180;border-radius:8px;pointer-events:none;}
+.arrival-skip{z-index:4;cursor:pointer;}
+@media(max-width:639px){.aircraft-rim{border-width:14px;}.aircraft-rim::after{inset:-14px;border-width:7px;}.aircraft-wing{bottom:31%;width:35%;}.captain-subtitle{bottom:17%;}}
