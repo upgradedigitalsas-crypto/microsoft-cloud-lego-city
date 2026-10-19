@@ -679,3 +679,21 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .intro-audio-start button{border:1px solid #b9a0ff;border-radius:999px;background:#5900ff;color:white;padding:16px 28px;font:600 17px 'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 8px 40px #5900ff50;}
 .intro-audio-start button:focus-visible{outline:3px solid white;outline-offset:5px;}
 .intro-audio-start p{color:#e1dbf4;max-width:340px;line-height:1.5;}
+
+/* Native equivalent of the expanding-circle motion button. */
+.intro-audio-start button{position:relative;width:min(294px,90vw);height:60px;border:0;border-radius:999px;padding:5px;background:#f4f0ff;color:#24143d;overflow:hidden;box-shadow:0 8px 36px #180b3b55;}
+.start-fill{position:absolute;left:5px;top:5px;width:50px;height:50px;border-radius:999px;background:#5900ff;transition:width .5s cubic-bezier(.22,1,.36,1);}
+.start-arrow{position:absolute;left:18px;top:18px;width:24px;height:24px;color:white;transition:transform .5s;}
+.start-label{position:relative;display:block;padding-left:48px;font-size:15px;line-height:50px;transition:color .3s;}
+.intro-audio-start button:is(:hover,:focus-visible,:active) .start-fill{width:calc(100% - 10px);}
+.intro-audio-start button:is(:hover,:focus-visible,:active) .start-arrow{transform:translateX(5px);}
+.intro-audio-start button:is(:hover,:focus-visible,:active) .start-label{color:#fff;}
+/* Vertical oval opening; all brick texture stays on the opaque cabin wall. */
+.arrival-window{--window-half:min(37vw,32vh);}
+.aircraft-cabin{display:block;z-index:1;background:radial-gradient(circle at 20px 18px,#edf0f4 0 7px,#a8b0bc 8px,#687381 10px,transparent 12px) 0 0/48px 48px,repeating-linear-gradient(0deg,transparent 0 94px,#68738166 95px 96px),repeating-linear-gradient(90deg,transparent 0 142px,#68738155 143px 144px),linear-gradient(120deg,#cbd1d9,#8d98a7);mask-image:radial-gradient(ellipse var(--window-half) 41% at 50% 47%,transparent 99.5%,black 100%);-webkit-mask-image:radial-gradient(ellipse var(--window-half) 41% at 50% 47%,transparent 99.5%,black 100%);}
+.aircraft-rim,.aircraft-exterior{inset:auto;left:50%;top:6%;width:min(74vw,64vh);height:82%;transform:translateX(-50%);border-radius:50%;box-sizing:border-box;}
+.aircraft-rim{border:16px solid #c3cbd6;box-shadow:inset 0 0 0 5px #5e7189,inset 0 12px 22px #17202f70,0 0 0 5px #e0e5ec,0 0 0 12px #8591a1,0 16px 24px #26384b55;}
+.aircraft-rim::after{display:none;}
+.aircraft-exterior{clip-path:ellipse(50% 50% at 50% 50%);}
+.captain-subtitle{bottom:13%;width:min(620px,88%);}
+@media(prefers-reduced-motion:reduce){.start-fill,.start-arrow,.start-label{transition:none;}}
