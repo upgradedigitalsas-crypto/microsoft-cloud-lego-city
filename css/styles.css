@@ -659,3 +659,9 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .captain-subtitle{z-index:3;bottom:12%;padding:10px 16px;background:#08132180;border-radius:8px;pointer-events:none;}
 .arrival-skip{z-index:4;cursor:pointer;}
 @media(max-width:639px){.aircraft-rim{border-width:14px;}.aircraft-rim::after{inset:-14px;border-width:7px;}.aircraft-wing{bottom:31%;width:35%;}.captain-subtitle{bottom:17%;}}
+
+/* Wing plates and studs are projected toward a shared distant tip. */
+.aircraft-wing{right:8%;bottom:24%;width:38%;height:auto;aspect-ratio:640/300;background:url('../assets/arrival-wing.svg') center/contain no-repeat;clip-path:none;transform:rotate(-3deg);filter:drop-shadow(0 9px 5px #10223c60);}
+/* Keep studs on the frame rather than across the transparent window. */
+.aircraft-cabin::after{display:none;}
+@media(max-width:639px){.aircraft-wing{right:4%;bottom:28%;width:47%;}}
