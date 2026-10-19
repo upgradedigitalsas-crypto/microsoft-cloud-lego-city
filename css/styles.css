@@ -665,3 +665,10 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 /* Keep studs on the frame rather than across the transparent window. */
 .aircraft-cabin::after{display:none;}
 @media(max-width:639px){.aircraft-wing{right:4%;bottom:28%;width:47%;}}
+
+/* Exterior occlusion: the cabin is physically in front of the wing. */
+.aircraft-exterior{position:absolute;inset:5% 9%;border-radius:22% / 25%;overflow:hidden;pointer-events:none;z-index:0;}
+.aircraft-rim{z-index:2;}
+.aircraft-cabin{display:none;}
+.aircraft-exterior .aircraft-wing{right:-27%;bottom:14%;width:75%;transform:rotate(9deg);transform-origin:100% 80%;filter:brightness(.94) drop-shadow(0 5px 3px #15274150);}
+@media(max-width:639px){.aircraft-exterior{inset:8% 4%;}.aircraft-exterior .aircraft-wing{right:-38%;bottom:19%;width:95%;}}

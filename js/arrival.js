@@ -5,7 +5,7 @@ export function createArrival(camera,controls,audio,onFinish){
  const lines=audio.lines || CAPTAIN_LINES;
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const overlay=document.createElement('section');overlay.className='arrival-window';overlay.setAttribute('aria-label','Llegada a ITSE Cloud City');
- overlay.innerHTML='<div class="aircraft-cabin" aria-hidden="true"></div><div class="aircraft-rim" aria-hidden="true"></div><div class="aircraft-wing" aria-hidden="true"></div><p class="captain-subtitle" role="status" aria-live="polite"></p><button class="arrival-skip">Saltar llegada</button>';
+ overlay.innerHTML='<div class="aircraft-cabin" aria-hidden="true"></div><div class="aircraft-rim" aria-hidden="true"></div><div class="aircraft-exterior" aria-hidden="true"><div class="aircraft-wing"></div></div><p class="captain-subtitle" role="status" aria-live="polite"></p><button class="arrival-skip">Saltar llegada</button>';
  document.body.append(overlay);document.body.classList.add('arrival-active');controls.enabled=false;
  const subtitle=overlay.querySelector('p'),target=new THREE.Vector3(),position=new THREE.Vector3();let elapsed=0,ended=false,heardCaptain=Boolean(audio.speaking);
  subtitle.textContent=lines[0];
