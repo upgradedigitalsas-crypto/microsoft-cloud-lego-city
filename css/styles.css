@@ -709,3 +709,9 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 .intro-audio-start button:disabled{opacity:1;cursor:progress;}
 .intro-audio-start .start-fill{transition:width .5s ease;}
 .intro-audio-start .start-arrow{transition:transform .5s ease;}
+
+/* Reference-inspired primary-color bricks with a transparent stepped opening. */
+.aircraft-cabin{display:block;z-index:2;background:url('../assets/cabin-bricks.svg') 0 0/192px 192px;mask-image:none;-webkit-mask-image:none;clip-path:polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,36% 9%,36% 12%,26% 12%,26% 16%,20% 16%,20% 22%,16% 22%,16% 31%,13% 31%,13% 42%,16% 42%,16% 58%,13% 58%,13% 69%,18% 69%,18% 78%,23% 78%,23% 84%,30% 84%,30% 88%,40% 88%,40% 91%,61% 91%,61% 88%,72% 88%,72% 83%,80% 83%,80% 76%,85% 76%,85% 65%,88% 65%,88% 52%,85% 52%,85% 39%,88% 39%,88% 28%,83% 28%,83% 20%,77% 20%,77% 15%,67% 15%,67% 10%,56% 10%,56% 7%,45% 7%,45% 9%,36% 9%);}
+.aircraft-rim{display:none;}
+.aircraft-exterior{clip-path:none;overflow:visible;border-radius:0;}
+@media(max-width:639px){.aircraft-cabin{background-size:144px 144px;}}
