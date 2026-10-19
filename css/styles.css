@@ -674,3 +674,8 @@ body.hide-city-labels #labels-3d.has-hover>:not(.hovered){display:none!important
 @media(max-width:639px){.aircraft-exterior{inset:8% 4%;}.aircraft-exterior .aircraft-wing{right:-38%;bottom:19%;width:95%;}}
 
 .aircraft-exterior .aircraft-wing{filter:contrast(1.08) brightness(.97) drop-shadow(0 5px 3px #15274150);}
+
+.intro-audio-start{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:rgba(9,10,26,.86);padding:24px;text-align:center;backdrop-filter:blur(12px);}
+.intro-audio-start button{border:1px solid #b9a0ff;border-radius:999px;background:#5900ff;color:white;padding:16px 28px;font:600 17px 'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 8px 40px #5900ff50;}
+.intro-audio-start button:focus-visible{outline:3px solid white;outline-offset:5px;}
+.intro-audio-start p{color:#e1dbf4;max-width:340px;line-height:1.5;}
