@@ -43,7 +43,7 @@ function frame(now){if(closed)return;raf=requestAnimationFrame(frame);const t=en
  if(entered&&!skipped&&!failed){if(!tunnel)film?.render(t);if(t>9&&!loading)loadCity();if(t>=15.5)say('Conectando posibilidades');else if(t>=11)say('Tus datos. Un mundo de posibilidades.');else if(blackout)say('');else if(t>=5.8)say('La tecnología empieza con una conexión.');if(t>=19.5){if(ready)finish();else say('La ciudad está terminando de cargar…');}}
 }
 const welcome=document.createElement('div');welcome.className='intro-audio-start';
-welcome.innerHTML='<button type="button"><span class="start-fill" aria-hidden="true"></span><svg class="start-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><span class="start-label">Comenzar con sonido</span></button><p>Escucha la bienvenida de nuestra capitana y el ambiente de la ciudad.</p>';
+welcome.innerHTML='<button type="button"><span class="start-fill" aria-hidden="true"></span><svg class="start-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><span class="start-label">Comenzar con sonido</span></button><p>Descubre cómo Microsoft e ITSE impulsan el futuro de tu empresa.</p>';
 overlay.append(welcome);
 let disposeWave=null;
 import('./particle-wave.js').then(({createParticleWave})=>{if(!entered&&!closed)try{disposeWave=createParticleWave(welcome);}catch{/* Keep the start button available without WebGL. */}}).catch(()=>{});
